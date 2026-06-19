@@ -26,13 +26,13 @@ standardHeaders: true,
 legacyHeaders: false
 })
 
-const teamLimiter = rateLimit({
-    windowMs: 10 * 60 * 1000,
-    max: 20,
+const boardLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, 
+    max: 100,
+    message: "Too many board requests from this IP, please try again later.",
     standardHeaders: true,
     legacyHeaders: false,
-    
-})
+})    
 
 const eventLimiter = rateLimit({
     windowMs: 10 * 60 * 1000,
@@ -46,6 +46,6 @@ notificationLimiter,
 contactLimiter,
 helpLimiter,
 adminLimiter,
-teamLimiter,
+boardLimiter,
 eventLimiter
 }

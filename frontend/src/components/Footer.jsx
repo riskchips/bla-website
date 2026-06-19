@@ -184,8 +184,8 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/team" className="cursor-target">
-                  Team
+                <Link to="/board" className="cursor-target">
+                  Board
                 </Link>
               </li>
             </ul>

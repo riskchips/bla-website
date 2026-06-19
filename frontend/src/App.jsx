@@ -10,7 +10,7 @@ import Home from './pages/Home';
 import About from './pages/About';
 import Events from './pages/Events';
 import Gallery from './pages/Gallery';
-import Team from './pages/Team';
+import Board from './pages/Board';
 import Contact from './pages/Contact';
 import Grievance from './pages/Grievance';
 import Terms from './pages/Terms';
@@ -39,7 +39,7 @@ const App = () => {
           <Route path="/about" element={<About />} />
           <Route path="/events" element={<Events />} />
           <Route path="/gallery" element={<Gallery />} />
-          <Route path="/team" element={<Team />} />
+          <Route path="/board" element={<Board />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/grievance" element={<Grievance />} />
           <Route path="/terms" element={<Terms />} />

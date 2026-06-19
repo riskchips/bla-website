@@ -5,6 +5,7 @@ import Lightbox from "../components/Lightbox";
 import Skeleton from "../components/Skeleton";
 import { getEvents } from "../api";
 import useScrollReveal from "../hooks/useScrollReveal";
+import InfiniteMenu from "../components/InfiniteMenu";
 
 /* ─── Scroll-Reveal wrapper ─── */
 const ScrollReveal = ({ children, className = "", delay = 0 }) => {
@@ -17,77 +18,6 @@ const ScrollReveal = ({ children, className = "", delay = 0 }) => {
     >
       {children}
     </div>
-  );
-};
-
-/* ─── Gallery Image Card with Hover Overlay ─── */
-const GalleryImageCard = ({ img, onClick }) => {
-  const [hovered, setHovered] = useState(false);
-
-  return (
-    <button
-      onClick={onClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      className="cursor-target"
-      aria-label={`Open photo from ${img.caption}`}
-      style={{
-        position: "relative",
-        background: "none",
-        border: "1px solid var(--line)",
-        padding: 0,
-        overflow: "hidden",
-        borderRadius: 4,
-        display: "block",
-        width: "100%",
-        marginBottom: 16,
-        cursor: "zoom-in",
-        transition: "box-shadow 0.4s ease, transform 0.4s cubic-bezier(0.22,1,0.36,1)",
-        boxShadow: hovered
-          ? "0 16px 40px -12px rgba(122, 31, 26, 0.3)"
-          : "0 2px 8px rgba(0,0,0,0.06)",
-        transform: hovered ? "translateY(-3px)" : "translateY(0)",
-      }}
-    >
-      <img
-        src={img.url}
-        alt={img.caption}
-        loading="lazy"
-        style={{
-          width: "100%",
-          display: "block",
-          transition: "transform 0.5s cubic-bezier(0.22,1,0.36,1)",
-          transform: hovered ? "scale(1.05)" : "scale(1)",
-        }}
-      />
-
-      {/* Gradient overlay with caption */}
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: "linear-gradient(to top, rgba(44, 24, 16, 0.82) 0%, rgba(44, 24, 16, 0.3) 40%, transparent 100%)",
-          opacity: hovered ? 1 : 0,
-          transition: "opacity 0.4s ease",
-          display: "flex",
-          alignItems: "flex-end",
-          padding: "16px 14px",
-        }}
-      >
-        <span
-          style={{
-            color: "var(--bg-cream, #f5ecd9)",
-            fontFamily: "var(--font-en-display)",
-            fontSize: "0.95rem",
-            letterSpacing: "0.02em",
-            transform: hovered ? "translateY(0)" : "translateY(8px)",
-            transition: "transform 0.4s cubic-bezier(0.22,1,0.36,1)",
-          }}
-        >
-          {img.caption}
-        </span>
-      </div>
-    </button>
   );
 };
 
@@ -109,6 +39,15 @@ const Gallery = () => {
       (ev.gallery || []).map((url) => ({ url, caption: ev.name }))
     );
   }, [events]);
+
+  const menuItems = useMemo(() => {
+    return images.map(img => ({
+      image: img.url,
+      link: img.url, // Could be used to open lightbox in future or link elsewhere
+      title: img.caption,
+      description: ''
+    }));
+  }, [images]);
 
   return (
     <PageTransition>
@@ -165,35 +104,10 @@ const Gallery = () => {
             <div className="empty">No photos yet.</div>
           )}
 
-          {/* ── Masonry Gallery Grid ── */}
+          {/* ── Infinite Menu Gallery ── */}
           {images.length > 0 && (
-            <div
-              style={{
-                columnCount: 3,
-                columnGap: "16px",
-              }}
-            >
-              <style>{`
-                @media (max-width: 768px) {
-                  .gallery-masonry { column-count: 2 !important; }
-                }
-                @media (max-width: 480px) {
-                  .gallery-masonry { column-count: 1 !important; }
-                }
-              `}</style>
-              <div
-                className="gallery-masonry"
-                style={{ columnCount: "inherit", columnGap: "inherit" }}
-              >
-                {images.map((img, i) => (
-                  <ScrollReveal key={i} delay={0.06 * Math.min(i, 8)}>
-                    <GalleryImageCard
-                      img={img}
-                      onClick={() => setLightbox(img.url)}
-                    />
-                  </ScrollReveal>
-                ))}
-              </div>
+            <div style={{ height: '600px', position: 'relative', marginTop: '40px' }}>
+              <InfiniteMenu items={menuItems} scale={1.0} />
             </div>
           )}
         </div>
@@ -205,3 +119,4 @@ const Gallery = () => {
 };
 
 export default Gallery;
+

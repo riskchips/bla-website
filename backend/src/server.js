@@ -10,7 +10,7 @@ const fs = require("fs").promises
 const notificationRoutes = require("./routes/notificationRoutes")
 const contactRoutes = require("./routes/contactRoutes")
 const helpRoutes = require("./routes/helpRoutes")
-const teamRoutes = require("./routes/teamRoutes")
+const boardRoutes = require("./routes/boardRoutes")
 const eventRoutes = require("./routes/eventRoutes")
 const adminRoutes = require("./routes/adminRoutes")
 
@@ -54,7 +54,8 @@ app.use(
 
                 imgSrc: [
                     "'self'",
-                    "data:"
+                    "data:",
+                    "https://s6.imgcdn.dev/"
                 ]
             }
         }
@@ -96,7 +97,7 @@ app.use(
 app.use("/api", notificationRoutes)
 app.use("/api", contactRoutes)
 app.use("/api", helpRoutes)
-app.use("/api", teamRoutes)
+app.use("/api", boardRoutes)
 app.use("/api", eventRoutes)
 app.use("/api", adminRoutes)
 

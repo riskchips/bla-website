@@ -21,8 +21,8 @@ export const getNotifications = async () => {
   return json(res);
 };
 
-export const getTeam = async () => {
-  const res = await fetch("/api/team", { headers: { Accept: "application/json" } });
+export const getBoard = async () => {
+  const res = await fetch("/api/board", { headers: { Accept: "application/json" } });
   return json(res);
 };
 

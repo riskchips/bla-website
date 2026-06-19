@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
 const ADMIN_KEY = "bla_admin_token";
@@ -30,10 +30,12 @@ const Dashboard = () => {
   const [eventStatus, setEventStatus] = useState(null);
 
   // Team form state
+  const [editTeamId, setEditTeamId] = useState(null); // null means creating new
   const [teamName, setTeamName] = useState("");
   const [teamRole, setTeamRole] = useState("");
   const [teamDesc, setTeamDesc] = useState("");
   const [teamImage, setTeamImage] = useState("");
+  const [teamBoardYear, setTeamBoardYear] = useState("2026-27");
   const [teamStatus, setTeamStatus] = useState(null);
 
   const token = localStorage.getItem(ADMIN_KEY);
@@ -73,7 +75,7 @@ const Dashboard = () => {
   };
 
   const fetchTeam = () => {
-    fetch("/api/team")
+    fetch("/api/board")
       .then(res => res.json())
       .then(data => { if(data?.success) setTeam(data.team); })
       .catch(console.error);
@@ -133,13 +135,17 @@ const Dashboard = () => {
   };
 
   const deleteTeamMember = async (id) => {
-    if (!window.confirm("Are you sure you want to remove this team member?")) return;
+    if (!window.confirm("Are you sure you want to remove this board member?")) return;
     try {
-      const res = await fetch(`/api/delete/team/${id}`, {
+      const res = await fetch(`/api/delete/board/${id}`, {
         method: "DELETE", headers: { "Authorization": token }
       });
       handleApiError(res);
       fetchTeam();
+      if (editTeamId === id) {
+        setEditTeamId(null);
+        setTeamName(""); setTeamRole(""); setTeamDesc(""); setTeamImage(""); setTeamBoardYear("2026-27");
+      }
     } catch (e) { console.error(e); }
   };
 
@@ -189,7 +195,6 @@ const Dashboard = () => {
     setEventName(ev.name);
     setEventDesc(ev.description);
     
-    // Format timestamp to YYYY-MM-DD for date input
     const d = new Date(parseInt(ev.timestamp));
     const year = d.getFullYear();
     const month = String(d.getMonth() + 1).padStart(2, '0');
@@ -237,23 +242,45 @@ const Dashboard = () => {
     }
   };
 
+  const startEditTeam = (id, member) => {
+    setEditTeamId(id);
+    setTeamName(member.name);
+    setTeamRole(member.role);
+    setTeamDesc(member.description);
+    setTeamImage(member.image);
+    setTeamBoardYear(member.board_year || "2026-27");
+    setTeamStatus(null);
+  };
+
   const submitTeam = async (e) => {
     e.preventDefault();
     setTeamStatus("Submitting...");
+    
+    const isEdit = editTeamId !== null;
+    const url = isEdit ? `/api/update/board/${editTeamId}` : "/api/create/board";
+    const method = isEdit ? "PUT" : "POST";
+
     try {
-      const res = await fetch("/api/create/team", {
-        method: "POST",
+      const res = await fetch(url, {
+        method: method,
         headers: { "Content-Type": "application/json", "Authorization": token },
-        body: JSON.stringify({ name: teamName, role: teamRole, description: teamDesc, image: teamImage })
+        body: JSON.stringify({ 
+            name: teamName, 
+            role: teamRole, 
+            description: teamDesc, 
+            image: teamImage,
+            board_year: teamBoardYear 
+        })
       });
       handleApiError(res);
       const data = await res.json();
       if (data.success) {
-        setTeamStatus("Team member added successfully!");
-        setTeamName(""); setTeamRole(""); setTeamDesc(""); setTeamImage("");
+        setTeamStatus(`Board member ${isEdit ? "updated" : "added"} successfully!`);
+        setTeamName(""); setTeamRole(""); setTeamDesc(""); setTeamImage(""); setTeamBoardYear("2026-27");
+        setEditTeamId(null);
         fetchTeam();
       } else {
-        setTeamStatus(data.message || "Failed to create.");
+        setTeamStatus(data.message || "Failed to submit.");
       }
     } catch (err) {
       setTeamStatus("Error connecting to server.");
@@ -265,8 +292,32 @@ const Dashboard = () => {
     { id: "help", label: "Help Requests" },
     { id: "notify", label: "Notifications" },
     { id: "events", label: "Events" },
-    { id: "team", label: "Team Management" }
+    { id: "team", label: "Board Management" }
   ];
+
+  // Group team members by board year
+  const groupedTeam = useMemo(() => {
+    const grouped = {};
+    team.forEach(member => {
+        const year = member.board_year || "Unknown";
+        if (!grouped[year]) grouped[year] = [];
+        grouped[year].push(member);
+    });
+    // Sort years descending generally
+    return Object.keys(grouped).sort((a,b) => b.localeCompare(a)).map(year => ({
+        year,
+        members: grouped[year]
+    }));
+  }, [team]);
+
+  // Generate Board Year options +/- 10 years from current year
+  const yearOptions = useMemo(() => {
+    const currentYear = new Date().getFullYear();
+    return Array.from({ length: 21 }, (_, i) => {
+      const startYear = currentYear - 10 + i;
+      return `${startYear}-${(startYear + 1).toString().slice(2)}`;
+    });
+  }, []);
 
   return (
     <main style={{ minHeight: "100vh", background: "var(--bg-cream)", padding: "40px 24px" }}>
@@ -423,21 +474,46 @@ const Dashboard = () => {
 
           {activeTab === "team" && (
             <div>
-              <h2 style={{ fontFamily: "var(--font-en-display)", color: "var(--deep-red)" }}>Team Members</h2>
-              {team.length === 0 ? <p>No team members found.</p> : (
-                <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "30px" }}>
-                  {team.map((member) => (
-                    <div key={member.id} style={{ border: "1px solid #ddd", padding: "10px", borderRadius: "8px", position: "relative" }}>
-                      <strong>{member.name}</strong> - {member.role}
-                      <p style={{ margin: "5px 0 0", fontSize: "0.9rem" }}>{member.description}</p>
-                      <button onClick={() => deleteTeamMember(member.id)} className="btn cursor-target" style={{ position: "absolute", top: "10px", right: "10px", background: "var(--deep-red)", padding: "4px 8px", fontSize: "0.8rem" }}>Delete</button>
+              <h2 style={{ fontFamily: "var(--font-en-display)", color: "var(--deep-red)" }}>Board Members</h2>
+              {groupedTeam.length === 0 ? <p>No Board members found.</p> : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "20px", marginBottom: "30px" }}>
+                  {groupedTeam.map(group => (
+                    <div key={group.year}>
+                        <h3 style={{ borderBottom: "1px solid var(--line)", paddingBottom: "5px" }}>Board {group.year}</h3>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "10px" }}>
+                            {group.members.map((member) => (
+                                <div key={member.id} style={{ border: "1px solid #ddd", padding: "10px", borderRadius: "8px", position: "relative" }}>
+                                <strong>{member.name}</strong> - {member.role}
+                                <p style={{ margin: "5px 0 0", fontSize: "0.9rem" }}>{member.description}</p>
+                                <div style={{ position: "absolute", top: "10px", right: "10px", display: "flex", gap: "5px" }}>
+                                    <button onClick={() => startEditTeam(member.id, member)} className="btn ghost cursor-target" style={{ padding: "4px 8px", fontSize: "0.8rem" }}>Edit</button>
+                                    <button onClick={() => deleteTeamMember(member.id)} className="btn cursor-target" style={{ background: "var(--deep-red)", padding: "4px 8px", fontSize: "0.8rem" }}>Delete</button>
+                                </div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                   ))}
                 </div>
               )}
 
-              <h2 style={{ fontFamily: "var(--font-en-display)", color: "var(--deep-red)", marginTop: "20px" }}>Add Team Member</h2>
-              <form onSubmit={submitTeam} style={{ display: "flex", flexDirection: "column", gap: "15px", maxWidth: "500px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "20px", maxWidth: "500px" }}>
+                <h2 style={{ fontFamily: "var(--font-en-display)", color: "var(--deep-red)", margin: 0 }}>
+                  {editTeamId !== null ? "Edit Board Member" : "Add Board Member"}
+                </h2>
+                {editTeamId !== null && (
+                  <button onClick={() => { setEditTeamId(null); setTeamName(""); setTeamRole(""); setTeamDesc(""); setTeamImage(""); setTeamBoardYear("2026-27"); }} className="btn ghost cursor-target" style={{ padding: "4px 8px", fontSize: "0.8rem" }}>Cancel Edit</button>
+                )}
+              </div>
+              <form onSubmit={submitTeam} style={{ display: "flex", flexDirection: "column", gap: "15px", maxWidth: "500px", marginTop: "15px" }}>
+                <div className="field">
+                  <label className="label">Board Year</label>
+                  <select className="input" value={teamBoardYear} onChange={e => setTeamBoardYear(e.target.value)} required>
+                    {yearOptions.map(year => (
+                      <option key={year} value={year}>{year}</option>
+                    ))}
+                  </select>
+                </div>
                 <div className="field">
                   <label className="label">Name</label>
                   <input className="input" value={teamName} onChange={e => setTeamName(e.target.value)} required />
@@ -455,7 +531,7 @@ const Dashboard = () => {
                   <input className="input" value={teamImage} onChange={e => setTeamImage(e.target.value)} />
                 </div>
                 {teamStatus && <p style={{ color: "var(--terracotta)" }}>{teamStatus}</p>}
-                <button type="submit" className="btn cursor-target">Add Member</button>
+                <button type="submit" className="btn cursor-target">{editTeamId !== null ? "Update Member" : "Add Member"}</button>
               </form>
             </div>
           )}
