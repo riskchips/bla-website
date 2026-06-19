@@ -1,0 +1,39 @@
+.ornament {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  color: var(--terracotta);
+}
+.ornament .line {
+  width: 60px;
+  height: 1px;
+  background: var(--terracotta);
+  opacity: 0.5;
+}
+.ornament .kalka {
+  font-family: var(--font-bn-display);
+  font-size: 1.1rem;
+  color: var(--terracotta);
+}
+
+.divider {
+  display: flex;
+  justify-content: center;
+  margin: 56px 0;
+  color: var(--terracotta);
+}
+.divider svg { width: 220px; height: 24px; }
+
+.paisley-corner {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  color: var(--gold-soft);
+  opacity: 0.45;
+  pointer-events: none;
+}
+.paisley-corner.tl { top: 14px; left: 14px; }
+.paisley-corner.tr { top: 14px; right: 14px; transform: scaleX(-1); }
+.paisley-corner.bl { bottom: 14px; left: 14px; transform: scaleY(-1); }
+.paisley-corner.br { bottom: 14px; right: 14px; transform: scale(-1, -1); }
