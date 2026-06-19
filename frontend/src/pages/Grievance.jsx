@@ -3,7 +3,108 @@ import PageTransition from "../components/PageTransition";
 import Ornament from "../components/Ornament";
 import TurnstileField from "../components/TurnstileField";
 import { submitHelp, HELP_CATEGORIES } from "../api";
+import useScrollReveal from "../hooks/useScrollReveal";
 
+/* ─── Scroll-Reveal wrapper ─── */
+const ScrollReveal = ({ children, className = "", delay = 0 }) => {
+  const ref = useScrollReveal();
+  return (
+    <div
+      ref={ref}
+      className={`scroll-reveal ${className}`}
+      style={delay ? { transitionDelay: `${delay}s` } : undefined}
+    >
+      {children}
+    </div>
+  );
+};
+
+/* ─── Warm success animation ─── */
+const SuccessAnimation = () => (
+  <div
+    style={{
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      marginBottom: 20,
+    }}
+  >
+    <div
+      style={{
+        width: 72,
+        height: 72,
+        borderRadius: "50%",
+        background: "linear-gradient(135deg, var(--gold), var(--gold-soft))",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        animation: "golden-glow-pulse 2s ease-in-out infinite",
+        marginBottom: 16,
+      }}
+    >
+      <svg
+        width="36"
+        height="36"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="var(--paper)"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
+        <path
+          d="M5 13l4 4L19 7"
+          style={{
+            strokeDasharray: 48,
+            strokeDashoffset: 48,
+            animation: "checkmark-draw 0.6s 0.3s ease forwards",
+          }}
+        />
+      </svg>
+    </div>
+    {/* Lotus decorations */}
+    <div
+      aria-hidden="true"
+      style={{
+        display: "flex",
+        gap: 8,
+        color: "var(--gold-soft)",
+        fontSize: "1.2rem",
+        opacity: 0.6,
+      }}
+    >
+      <span>✾</span>
+      <span>🪷</span>
+      <span>✾</span>
+    </div>
+  </div>
+);
+
+/* ─── Decorative Bengali watermark ─── */
+const GrievanceWatermark = () => (
+  <div
+    aria-hidden="true"
+    className="bn"
+    style={{
+      position: "absolute",
+      top: 24,
+      right: -8,
+      fontSize: "6rem",
+      color: "var(--terracotta)",
+      opacity: 0.03,
+      pointerEvents: "none",
+      userSelect: "none",
+      lineHeight: 1,
+      transform: "rotate(-10deg)",
+      zIndex: 0,
+    }}
+  >
+    সহায়তা
+  </div>
+);
+
+/* ─── Validation ─── */
 const validate = ({ name, email, phone, category, subject, details }) => {
   if (!name || name.trim().length < 2) return "Please enter your name.";
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return "Please enter a valid email.";
@@ -14,6 +115,7 @@ const validate = ({ name, email, phone, category, subject, details }) => {
   return null;
 };
 
+/* ─── Main Grievance Page ─── */
 const Grievance = () => {
   const [form, setForm] = useState({
     name: "", email: "", phone: "", category: "", subject: "", details: "",
@@ -45,64 +147,198 @@ const Grievance = () => {
 
   return (
     <PageTransition>
-      <section className="page">
-        <div className="container" style={{ maxWidth: 720 }}>
-          <div className="page-header">
-            <span className="eyebrow">অভিযোগ ও সহায়তা</span>
-            <h1 className="section-title">Grievance Portal</h1>
-            <Ornament />
-            <p className="section-subtitle">
-              Found a problem? Need help? Have a suggestion? Tell us here.
-            </p>
-          </div>
-
-          {success ? (
-            <div className="card">
-              <h3 style={{ color: "var(--deep-red)" }}>Received · ধন্যবাদ</h3>
-              <p style={{ color: "var(--ink-soft)" }}>
-                Your request has been recorded. A member of the team will look into it.
+      <section className="page" style={{ position: "relative", overflow: "hidden" }}>
+        <div className="container" style={{ maxWidth: 720, position: "relative", zIndex: 1 }}>
+          {/* ── Page Header ── */}
+          <ScrollReveal>
+            <div className="page-header">
+              <div
+                aria-hidden="true"
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  gap: 8,
+                  marginBottom: 8,
+                  color: "var(--gold-soft)",
+                  opacity: 0.55,
+                  fontSize: "0.85rem",
+                }}
+              >
+                <span>✾</span>
+                <span>🤝</span>
+                <span>✾</span>
+              </div>
+              <span className="eyebrow">অভিযোগ ও সহায়তা</span>
+              <h1 className="section-title">Grievance Portal</h1>
+              <Ornament />
+              <p className="section-subtitle">
+                Found a problem? Need help? Have a suggestion? Tell us here.
               </p>
-              <button className="btn cursor-target" onClick={() => setSuccess(false)}>Submit another</button>
             </div>
-          ) : (
-            <form onSubmit={onSubmit} className="card">
-              {error && <div className="alert error">{error}</div>}
+          </ScrollReveal>
 
-              <div className="field">
-                <label className="label">Name <span className="bn">নাম</span></label>
-                <input className="input" value={form.name} onChange={set("name")} required maxLength={100} />
-              </div>
-              <div className="field">
-                <label className="label">Email <span className="bn">ইমেল</span></label>
-                <input className="input" type="email" value={form.email} onChange={set("email")} maxLength={255} />
-              </div>
-              <div className="field">
-                <label className="label">Phone <span className="bn">ফোন</span></label>
-                <input className="input" value={form.phone} onChange={set("phone")} maxLength={15} />
-              </div>
-              <div className="field">
-                <label className="label">Category <span className="bn">বিভাগ</span></label>
-                <select className="select" value={form.category} onChange={set("category")} required>
-                  <option value="">— Select a category —</option>
-                  {HELP_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-                </select>
-              </div>
-              <div className="field">
-                <label className="label">Subject <span className="bn">বিষয়</span></label>
-                <input className="input" value={form.subject} onChange={set("subject")} required maxLength={150} />
-              </div>
-              <div className="field">
-                <label className="label">Details <span className="bn">বিস্তারিত</span></label>
-                <textarea className="textarea" value={form.details} onChange={set("details")} required maxLength={1500} />
-              </div>
+          {/* ── Encouraging Bengali message ── */}
+          <ScrollReveal delay={0.1}>
+            <div
+              style={{
+                textAlign: "center",
+                marginBottom: 32,
+                padding: "14px 20px",
+                borderLeft: "3px solid var(--gold-soft)",
+                borderRight: "3px solid var(--gold-soft)",
+                maxWidth: 520,
+                margin: "0 auto 32px",
+                background: "rgba(184, 137, 58, 0.04)",
+                borderRadius: 2,
+              }}
+            >
+              <p
+                className="bn"
+                style={{
+                  color: "var(--ink-soft)",
+                  fontSize: "1.05rem",
+                  margin: 0,
+                  lineHeight: 1.8,
+                }}
+              >
+                আপনার কথা আমাদের কাছে গুরুত্বপূর্ণ
+              </p>
+              <p
+                className="italic-en"
+                style={{
+                  color: "var(--ink-soft)",
+                  fontSize: "0.9rem",
+                  margin: "6px 0 0",
+                  opacity: 0.7,
+                }}
+              >
+                Your voice matters to us.
+              </p>
+            </div>
+          </ScrollReveal>
 
-              <TurnstileField onVerify={setToken} onExpire={() => setToken(null)} />
+          {/* ── Form / Success ── */}
+          <ScrollReveal delay={0.15}>
+            {success ? (
+              <div className="card" style={{ textAlign: "center", position: "relative" }}>
+                <SuccessAnimation />
+                <h3 style={{ color: "var(--deep-red)" }}>Received · ধন্যবাদ</h3>
+                <p style={{ color: "var(--ink-soft)" }}>
+                  Your request has been recorded. A member of the team will look into it.
+                </p>
+                <button
+                  className="btn cursor-target"
+                  onClick={() => setSuccess(false)}
+                >
+                  Submit another
+                </button>
+              </div>
+            ) : (
+              <form
+                onSubmit={onSubmit}
+                className="card"
+                style={{ position: "relative", overflow: "hidden" }}
+              >
+                <GrievanceWatermark />
 
-              <button type="submit" className="btn cursor-target" disabled={loading}>
-                {loading ? "Submitting…" : "Submit Request"}
-              </button>
-            </form>
-          )}
+                {error && <div className="alert error">{error}</div>}
+
+                <div className="field">
+                  <label className="label">
+                    Name <span className="bn">নাম</span>
+                  </label>
+                  <input
+                    className="input"
+                    value={form.name}
+                    onChange={set("name")}
+                    required
+                    maxLength={100}
+                    id="grievance-name"
+                    aria-label="Your name"
+                  />
+                </div>
+                <div className="field">
+                  <label className="label">
+                    Email <span className="bn">ইমেল</span>
+                  </label>
+                  <input
+                    className="input"
+                    type="email"
+                    value={form.email}
+                    onChange={set("email")}
+                    maxLength={255}
+                    id="grievance-email"
+                    aria-label="Your email"
+                  />
+                </div>
+                <div className="field">
+                  <label className="label">
+                    Phone <span className="bn">ফোন</span>
+                  </label>
+                  <input
+                    className="input"
+                    value={form.phone}
+                    onChange={set("phone")}
+                    maxLength={15}
+                    id="grievance-phone"
+                    aria-label="Your phone number"
+                  />
+                </div>
+                <div className="field">
+                  <label className="label">
+                    Category <span className="bn">বিভাগ</span>
+                  </label>
+                  <select
+                    className="select"
+                    value={form.category}
+                    onChange={set("category")}
+                    required
+                    id="grievance-category"
+                    aria-label="Issue category"
+                  >
+                    <option value="">— Select a category —</option>
+                    {HELP_CATEGORIES.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="field">
+                  <label className="label">
+                    Subject <span className="bn">বিষয়</span>
+                  </label>
+                  <input
+                    className="input"
+                    value={form.subject}
+                    onChange={set("subject")}
+                    required
+                    maxLength={150}
+                    id="grievance-subject"
+                    aria-label="Subject"
+                  />
+                </div>
+                <div className="field">
+                  <label className="label">
+                    Details <span className="bn">বিস্তারিত</span>
+                  </label>
+                  <textarea
+                    className="textarea"
+                    value={form.details}
+                    onChange={set("details")}
+                    required
+                    maxLength={1500}
+                    id="grievance-details"
+                    aria-label="Details about your issue"
+                  />
+                </div>
+
+                <TurnstileField onVerify={setToken} onExpire={() => setToken(null)} />
+
+                <button type="submit" className="btn cursor-target" disabled={loading}>
+                  {loading ? "Submitting…" : "Submit Request"}
+                </button>
+              </form>
+            )}
+          </ScrollReveal>
         </div>
       </section>
     </PageTransition>

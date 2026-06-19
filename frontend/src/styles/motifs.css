@@ -1,38 +1,107 @@
+/* ═══════════════════════════════════════════════════════════
+   Motifs — Decorative Bengali-inspired ornamental elements
+   ═══════════════════════════════════════════════════════════ */
+
 .ornament {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 14px;
-  color: var(--terracotta);
+  color: var(--gold);
+  animation: fade-in-up 0.8s ease both;
 }
+
 .ornament .line {
   width: 60px;
-  height: 1px;
-  background: var(--terracotta);
-  opacity: 0.5;
+  height: 1.5px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  opacity: 0.6;
+  animation: ornament-line-expand 1s var(--transition-smooth) both;
 }
+
 .ornament .kalka {
   font-family: var(--font-bn-display);
   font-size: 1.1rem;
-  color: var(--terracotta);
+  color: var(--gold);
+  animation: kalka-pulse 4s ease-in-out infinite;
 }
+
+/* Animated ornament variant */
+.ornament-animated .line {
+  width: 0;
+  animation: ornament-line-expand 1.2s var(--transition-smooth) 0.2s both;
+}
+
+.ornament-animated .kalka {
+  opacity: 0;
+  animation:
+    fade-in-up 0.6s ease 0.4s both,
+    kalka-pulse 4s ease-in-out 1s infinite;
+}
+
+@keyframes ornament-line-expand {
+  from {
+    width: 0;
+    opacity: 0;
+  }
+  to {
+    width: 60px;
+    opacity: 0.6;
+  }
+}
+
+@keyframes kalka-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+/* ─── Divider ───────────────────────────────────────────── */
 
 .divider {
   display: flex;
   justify-content: center;
   margin: 56px 0;
-  color: var(--terracotta);
+  color: var(--gold);
+  opacity: 0.7;
+  transition: opacity 0.4s ease;
 }
-.divider svg { width: 220px; height: 24px; }
+
+.divider:hover {
+  opacity: 1;
+}
+
+.divider svg {
+  width: 240px;
+  height: 28px;
+  filter: drop-shadow(0 1px 3px var(--gold-glow));
+}
+
+/* ─── Paisley Corners ───────────────────────────────────── */
 
 .paisley-corner {
   position: absolute;
   width: 80px;
   height: 80px;
   color: var(--gold-soft);
-  opacity: 0.45;
+  opacity: 0.35;
   pointer-events: none;
+  transition: opacity 0.6s ease, filter 0.6s ease;
+  filter: drop-shadow(0 0 4px transparent);
 }
+
+.paisley-corner:hover {
+  opacity: 0.65;
+}
+
+*:hover > .paisley-corner {
+  opacity: 0.55;
+  filter: drop-shadow(0 0 6px var(--gold-glow));
+}
+
 .paisley-corner.tl { top: 14px; left: 14px; }
 .paisley-corner.tr { top: 14px; right: 14px; transform: scaleX(-1); }
 .paisley-corner.bl { bottom: 14px; left: 14px; transform: scaleY(-1); }

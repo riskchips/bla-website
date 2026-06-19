@@ -1,25 +1,27 @@
-import { Routes, Route, useLocation } from "react-router-dom";
-import { AnimatePresence } from "framer-motion";
-import Nav from "./components/Nav";
-import Footer from "./components/Footer";
-import TargetCursor from "./components/TargetCursor";
+import { Routes, Route, useLocation } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
+import Nav from './components/Nav';
+import Footer from './components/Footer';
+import TargetCursor from './components/TargetCursor';
+import FloatingParticles from './components/FloatingParticles';
+import EasterEggs from './components/EasterEggs';
 
-import Home from "./pages/Home";
-import About from "./pages/About";
-import Events from "./pages/Events";
-import Gallery from "./pages/Gallery";
-import Team from "./pages/Team";
-import Contact from "./pages/Contact";
-import Grievance from "./pages/Grievance";
-import Terms from "./pages/Terms";
-import Privacy from "./pages/Privacy";
-import NotFound from "./pages/NotFound";
-import AdminLogin from "./pages/admin/Login";
-import AdminDashboard from "./pages/admin/Dashboard";
+import Home from './pages/Home';
+import About from './pages/About';
+import Events from './pages/Events';
+import Gallery from './pages/Gallery';
+import Team from './pages/Team';
+import Contact from './pages/Contact';
+import Grievance from './pages/Grievance';
+import Terms from './pages/Terms';
+import Privacy from './pages/Privacy';
+import NotFound from './pages/NotFound';
+import AdminLogin from './pages/admin/Login';
+import AdminDashboard from './pages/admin/Dashboard';
 
 // Admin route — intentionally obscure so it cannot be guessed.
 // Not linked from anywhere in the public site.
-const ADMIN_ROOT = "/admin-bla-x7k2";
+const ADMIN_ROOT = '/admin-bla-x7ke';
 
 const App = () => {
   const location = useLocation();
@@ -27,6 +29,8 @@ const App = () => {
 
   return (
     <>
+      <FloatingParticles count={18} />
+      <EasterEggs />
       <TargetCursor targetSelector=".cursor-target" spinDuration={2.5} hideDefaultCursor={false} />
       {!isAdmin && <Nav />}
       <AnimatePresence mode="wait">

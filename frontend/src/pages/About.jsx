@@ -1,74 +1,260 @@
+import { useState } from "react";
+import { motion } from "framer-motion";
 import PageTransition from "../components/PageTransition";
 import Ornament from "../components/Ornament";
 import AlpanaDivider from "../components/AlpanaDivider";
+import useScrollReveal from "../hooks/useScrollReveal";
 
+/* ─── Scroll Reveal wrapper ─── */
+const ScrollReveal = ({ children, className = "", delay = 0 }) => {
+  const ref = useScrollReveal();
+  return (
+    <div
+      ref={ref}
+      className={`scroll-reveal ${className}`}
+      style={delay ? { transitionDelay: `${delay}s` } : undefined}
+    >
+      {children}
+    </div>
+  );
+};
+
+/* ─── Pillar data ─── */
 const pillars = [
-  { icon: "ক", title: "Literature", desc: "Open mics, recitations, poetry circles and writing workshops." },
-  { icon: "চ", title: "Art & Drawing", desc: "Sketchwalks, alpana sessions and exhibitions across the year." },
-  { icon: "ট", title: "Music & Dance", desc: "Rabindra Sangeet, classical, folk, and contemporary performances." },
-  { icon: "প", title: "Community", desc: "Festivals, talent showcases and the warmth of an old adda." },
+  {
+    icon: "ক",
+    title: "Literature",
+    desc: "Open mics, recitations, poetry circles and writing workshops.",
+  },
+  {
+    icon: "চ",
+    title: "Art & Drawing",
+    desc: "Sketchwalks, alpana sessions and exhibitions across the year.",
+  },
+  {
+    icon: "ট",
+    title: "Music & Dance",
+    desc: "Rabindra Sangeet, classical, folk, and contemporary performances.",
+  },
+  {
+    icon: "প",
+    title: "Community",
+    desc: "Festivals, talent showcases and the warmth of an old adda.",
+  },
 ];
 
-const About = () => (
-  <PageTransition>
-    <section className="page">
-      <div className="container">
-        <div className="page-header">
-          <span className="eyebrow">আমাদের কথা</span>
-          <h1 className="section-title">About the Association</h1>
-          <Ornament />
-          <p className="section-subtitle">A cultural home, not a corporate club.</p>
-        </div>
+/* ─── Cultural arts ─── */
+const culturalArts = [
+  { emoji: "💃", en: "Dance", bn: "নৃত্য" },
+  { emoji: "📚", en: "Literature", bn: "সাহিত্য" },
+  { emoji: "🎵", en: "Music", bn: "সঙ্গীত" },
+  { emoji: "🎨", en: "Art", bn: "চিত্রকলা" },
+];
 
-        <div className="prose">
-          <p>
-            The Bengali Literary Association — <span className="bn">বাংলা সাহিত্য সংঘ</span> —
-            began as a small gathering of students who missed the sound of Bengali in the corridors
-            of our college. Today, it is a full cultural club open to every student, no matter
-            where they come from or which language they grew up with.
-          </p>
-          <p>
-            We celebrate the things that have always made Bengali culture beautiful: the rhythm of
-            its poetry, the colour of its art, the depth of its music, and the joy of sitting
-            together over conversation and chai. From Rabindra Jayanti to open mics, from sketch
-            sessions to dance performances, every event is built by students for students.
-          </p>
-          <p>
-            BLA is not about formality. It is about belonging. If you love a song, a story, or a
-            single line of verse — you already belong here.
-          </p>
-        </div>
+const About = () => {
+  const [hoveredPillar, setHoveredPillar] = useState(null);
 
-        <AlpanaDivider />
+  return (
+    <PageTransition>
+      {/* Inline styles for scroll-reveal and decorative elements */}
+      <style>{`
+        .scroll-reveal {
+          opacity: 0;
+          transform: translateY(30px);
+          transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+        }
+        .scroll-reveal.visible {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        .about-deco {
+          position: absolute;
+          font-family: var(--font-bn-display);
+          color: var(--terracotta);
+          opacity: 0.05;
+          pointer-events: none;
+          z-index: 0;
+        }
+        .cultural-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 20px;
+          margin-top: 40px;
+        }
+        .cultural-item {
+          text-align: center;
+          padding: 28px 16px;
+          background: linear-gradient(135deg, var(--paper) 0%, var(--paper-dark) 100%);
+          border: 1px solid var(--line);
+          border-radius: 8px;
+          transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .cultural-item:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 12px 32px -12px rgba(122, 31, 26, 0.2);
+        }
+        .cultural-emoji {
+          font-size: 2.5rem;
+          margin-bottom: 8px;
+          display: block;
+        }
+        .cultural-en {
+          font-family: var(--font-en-display);
+          color: var(--deep-red);
+          font-size: 1.1rem;
+          margin-bottom: 2px;
+        }
+        .cultural-bn {
+          font-family: var(--font-bn-display);
+          color: var(--ink-soft);
+          font-size: 0.95rem;
+        }
+        @media (max-width: 620px) {
+          .cultural-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+      `}</style>
 
-        <div style={{ textAlign: "center", marginBottom: 24 }}>
-          <span className="eyebrow">আমাদের স্তম্ভ</span>
-          <h2 className="section-title" style={{ fontSize: "2rem" }}>Our Pillars</h2>
-        </div>
+      <section className="page" style={{ position: "relative" }}>
+        {/* Background decorative Bengali characters */}
+        <span className="about-deco" style={{ top: 80, left: 30, fontSize: "8rem" }} aria-hidden="true">
+          ব
+        </span>
+        <span className="about-deco" style={{ top: 300, right: 20, fontSize: "6rem" }} aria-hidden="true">
+          ল
+        </span>
+        <span className="about-deco" style={{ bottom: 200, left: 50, fontSize: "7rem" }} aria-hidden="true">
+          স
+        </span>
 
-        <div className="pillars">
-          {pillars.map((p) => (
-            <div className="pillar cursor-target" key={p.title}>
-              <div className="icon bn">{p.icon}</div>
-              <h4>{p.title}</h4>
-              <p>{p.desc}</p>
+        <div className="container" style={{ position: "relative", zIndex: 1 }}>
+          {/* ═══ Page Header ═══ */}
+          <ScrollReveal>
+            <div className="page-header">
+              <span className="eyebrow">আমাদের কথা</span>
+              <h1 className="section-title">About the Association</h1>
+              <Ornament />
+              <p className="section-subtitle">
+                A cultural home, not a corporate club.
+              </p>
             </div>
-          ))}
-        </div>
+          </ScrollReveal>
 
-        <AlpanaDivider />
+          {/* ═══ Prose Section ═══ */}
+          <ScrollReveal>
+            <div className="prose">
+              <p>
+                The Bengali Literary Association —{" "}
+                <span className="bn">বাংলা সাহিত্য সংঘ</span> — began as a
+                small gathering of students who missed the sound of Bengali in
+                the corridors of our college. Today, it is a full cultural club
+                open to every student, no matter where they come from or which
+                language they grew up with.
+              </p>
+              <p>
+                We celebrate the things that have always made Bengali culture
+                beautiful: the rhythm of its poetry, the colour of its art, the
+                depth of its music, and the joy of sitting together over
+                conversation and chai. From Rabindra Jayanti to open mics, from
+                sketch sessions to dance performances, every event is built by
+                students for students.
+              </p>
+              <p>
+                BLA is not about formality. It is about belonging. If you love a
+                song, a story, or a single line of verse — you already belong
+                here.
+              </p>
+            </div>
+          </ScrollReveal>
 
-        <div className="prose">
-          <h3 className="italic-en">Our Promise</h3>
-          <p>
-            To keep this club student-led, welcoming, and rooted in culture — not trends. To
-            give every member a stage, a notebook, a brush, or simply a chair in the circle.
-          </p>
-          <p className="bn">— শব্দে শব্দে বাংলা, সুরে সুরে আমরা।</p>
+          <AlpanaDivider />
+
+          {/* ═══ Pillars Section ═══ */}
+          <ScrollReveal>
+            <div style={{ textAlign: "center", marginBottom: 24 }}>
+              <span className="eyebrow">আমাদের স্তম্ভ</span>
+              <h2 className="section-title" style={{ fontSize: "2rem" }}>
+                Our Pillars
+              </h2>
+            </div>
+          </ScrollReveal>
+
+          <div className="pillars">
+            {pillars.map((p, idx) => (
+              <ScrollReveal key={p.title} delay={idx * 0.12}>
+                <motion.div
+                  className="pillar cursor-target"
+                  onMouseEnter={() => setHoveredPillar(p.title)}
+                  onMouseLeave={() => setHoveredPillar(null)}
+                  whileHover={{ scale: 1.03 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                >
+                  <div
+                    className="icon bn"
+                    style={{
+                      transition: "transform 0.3s ease",
+                      transform:
+                        hoveredPillar === p.title
+                          ? "translateY(-6px) scale(1.15)"
+                          : "translateY(0) scale(1)",
+                    }}
+                  >
+                    {p.icon}
+                  </div>
+                  <h4>{p.title}</h4>
+                  <p>{p.desc}</p>
+                </motion.div>
+              </ScrollReveal>
+            ))}
+          </div>
+
+          <AlpanaDivider />
+
+          {/* ═══ Cultural Arts Section ═══ */}
+          <ScrollReveal>
+            <div style={{ textAlign: "center", marginBottom: 8 }}>
+              <span className="eyebrow">আমাদের ধারা</span>
+              <h2 className="section-title" style={{ fontSize: "1.8rem" }}>
+                The Arts We Celebrate
+              </h2>
+              <Ornament />
+            </div>
+          </ScrollReveal>
+
+          <div className="cultural-grid">
+            {culturalArts.map((art, idx) => (
+              <ScrollReveal key={art.en} delay={idx * 0.1}>
+                <motion.div
+                  className="cultural-item cursor-target"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                >
+                  <span className="cultural-emoji">{art.emoji}</span>
+                  <div className="cultural-en">{art.en}</div>
+                  <div className="cultural-bn">{art.bn}</div>
+                </motion.div>
+              </ScrollReveal>
+            ))}
+          </div>
+
+          <AlpanaDivider />
+
+          {/* ═══ Promise Section ═══ */}
+          <ScrollReveal>
+            <div className="prose">
+              <h3 className="italic-en">Our Promise</h3>
+              <p>
+                To keep this club student-led, welcoming, and rooted in culture —
+                not trends. To give every member a stage, a notebook, a brush, or
+                simply a chair in the circle.
+              </p>
+              <p className="bn">— শব্দে শব্দে বাংলা, সুরে সুরে আমরা।</p>
+            </div>
+          </ScrollReveal>
         </div>
-      </div>
-    </section>
-  </PageTransition>
-);
+      </section>
+    </PageTransition>
+  );
+};
 
 export default About;

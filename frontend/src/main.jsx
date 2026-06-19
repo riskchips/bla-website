@@ -4,6 +4,7 @@ import { BrowserRouter } from "react-router-dom";
 import App from "./App.jsx";
 import "./styles/globals.css";
 import "./styles/motifs.css";
+import "./styles/bengali-animations.css";
 import "./components/TargetCursor.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(

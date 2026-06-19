@@ -185,4 +185,39 @@ let page = Number(req.query.page) || 1
 
 )
 
+router.delete(
+    "/delete/help/:id",
+    adminAuth,
+    adminLimiter,
+    async (req, res) => {
+        try {
+            const { id } = req.params
+
+            const { error } = await supabase
+                .from("help_requests")
+                .delete()
+                .eq("id", id)
+
+            if (error) {
+                console.error(error)
+                return res.status(500).json({
+                    success: false,
+                    message: "Database Error"
+                })
+            }
+
+            return res.json({
+                success: true,
+                message: "Help request deleted"
+            })
+        } catch (error) {
+            console.error(error)
+            return res.status(500).json({
+                success: false,
+                message: "Internal Server Error"
+            })
+        }
+    }
+)
+
 module.exports = router

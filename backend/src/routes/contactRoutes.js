@@ -220,4 +220,39 @@ router.get(
     }
 )
 
+router.delete(
+    "/delete/contact/:id",
+    adminAuth,
+    adminLimiter,
+    async (req, res) => {
+        try {
+            const { id } = req.params
+
+            const { error } = await supabase
+                .from("contacts")
+                .delete()
+                .eq("id", id)
+
+            if (error) {
+                console.error(error)
+                return res.status(500).json({
+                    success: false,
+                    message: "Database Error"
+                })
+            }
+
+            return res.json({
+                success: true,
+                message: "Contact deleted"
+            })
+        } catch (error) {
+            console.error(error)
+            return res.status(500).json({
+                success: false,
+                message: "Internal Server Error"
+            })
+        }
+    }
+)
+
 module.exports = router

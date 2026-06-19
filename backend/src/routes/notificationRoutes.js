@@ -143,4 +143,37 @@ router.post(
     }
 )
 
+router.delete(
+    "/delete/notification/:id",
+    adminAuth,
+    adminLimiter,
+    async (req, res) => {
+        try {
+            const { id } = req.params
+
+            const { error } = await supabase
+                .from("notifications")
+                .delete()
+                .eq("id", id)
+
+            if (error) {
+                return res.status(500).json({
+                    success: false,
+                    message: error.message
+                })
+            }
+
+            return res.json({
+                success: true,
+                message: "Notification deleted"
+            })
+        } catch {
+            return res.status(500).json({
+                success: false,
+                message: "Internal Server Error"
+            })
+        }
+    }
+)
+
 module.exports = router

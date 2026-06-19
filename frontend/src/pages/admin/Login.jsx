@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 const ADMIN_KEY = "bla_admin_token";
@@ -7,13 +7,54 @@ const Login = () => {
   const navigate = useNavigate();
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
+  const [checking, setChecking] = useState(true);
 
-  const submit = (e) => {
+  useEffect(() => {
+    const token = localStorage.getItem(ADMIN_KEY);
+    if (token) {
+      fetch("/api/admin/verify", {
+        method: "POST",
+        headers: { "Authorization": token }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          navigate("/admin-bla-x7ke/dashboard", { replace: true });
+        } else {
+          setChecking(false);
+          localStorage.removeItem(ADMIN_KEY);
+        }
+      })
+      .catch(() => setChecking(false));
+    } else {
+      setChecking(false);
+    }
+  }, [navigate]);
+
+  const submit = async (e) => {
     e.preventDefault();
     if (!password || password.length < 4) { setError("Enter the admin password."); return; }
-    localStorage.setItem(ADMIN_KEY, password);
-    navigate("/admin-bla-x7k2/dashboard", { replace: true });
+    
+    try {
+      const res = await fetch("/api/admin/verify", {
+        method: "POST",
+        headers: { "Authorization": password }
+      });
+      
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setError("Invalid password.");
+        return;
+      }
+      
+      localStorage.setItem(ADMIN_KEY, password);
+      navigate("/admin-bla-x7ke/dashboard", { replace: true });
+    } catch (err) {
+      setError("Failed to contact server.");
+    }
   };
+
+  if (checking) return <div style={{ minHeight: "100vh", background: "var(--bg-cream)" }} />;
 
   return (
     <main style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 24, background: "var(--bg-cream)" }}>
