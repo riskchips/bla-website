@@ -24,9 +24,12 @@ module.exports = (req, res, next) => {
         })
     }
 
+    const expectedOrigin = process.env.FRONTEND_URL || `https://${req.headers.host}`
+
     if (
         origin &&
-        origin !== process.env.FRONTEND_URL
+        !origin.startsWith(process.env.FRONTEND_URL) &&
+        !origin.startsWith(expectedOrigin)
     ) {
         return res.status(403).json({
             success: false,
@@ -36,9 +39,8 @@ module.exports = (req, res, next) => {
 
     if (
         referer &&
-        !referer.startsWith(
-            process.env.FRONTEND_URL
-        )
+        !referer.startsWith(process.env.FRONTEND_URL) &&
+        !referer.startsWith(expectedOrigin)
     ) {
         return res.status(403).json({
             success: false,
