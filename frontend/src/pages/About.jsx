@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import PageTransition from "../components/PageTransition";
 import Ornament from "../components/Ornament";
 import AlpanaDivider from "../components/AlpanaDivider";
 import useScrollReveal from "../hooks/useScrollReveal";
+import { getAboutContent } from "../api";
 
 /* ─── Scroll Reveal wrapper ─── */
 const ScrollReveal = ({ children, className = "", delay = 0 }) => {
@@ -53,6 +54,17 @@ const culturalArts = [
 
 const About = () => {
   const [hoveredPillar, setHoveredPillar] = useState(null);
+  const [aboutText, setAboutText] = useState("");
+
+  useEffect(() => {
+    getAboutContent()
+      .then(data => {
+        if (data?.success && data.content) {
+          setAboutText(data.content);
+        }
+      })
+      .catch(console.error);
+  }, []);
 
   return (
     <PageTransition>
@@ -142,16 +154,22 @@ const About = () => {
           {/* ═══ Prose Section ═══ */}
           <ScrollReveal>
             <div className="prose">
-              <p>
-                The Bengali Literary Association —{" "}
-                <span className="bn">ঐকতান</span> — started simply: a few students missing the familiar sound of Bengali around campus. It quickly grew into a vibrant cultural hub open to anyone, regardless of where they're from or what language they speak.
-              </p>
-              <p>
-                We're all about celebrating what makes Bengali culture so rich—whether that's getting lost in a poem, jamming to Rabindra Sangeet, painting together, or just sharing a good adda over a cup of chai. From big festivals like Rabindra Jayanti to casual open mics and sketchwalks, everything we do is driven entirely by students.
-              </p>
-              <p>
-                There's no strict formality here. It's just about community. If you appreciate a good tune, a moving story, or just want a place to hang out and connect, you've found your spot.
-              </p>
+              {aboutText ? (
+                aboutText.split("\n").map((para, i) => para.trim() && <p key={i}>{para}</p>)
+              ) : (
+                <>
+                  <p>
+                    The Bengali Literary Association —{" "}
+                    <span className="bn">ঐকতান</span> — started simply: a few students missing the familiar sound of Bengali around campus. It quickly grew into a vibrant cultural hub open to anyone, regardless of where they're from or what language they speak.
+                  </p>
+                  <p>
+                    We're all about celebrating what makes Bengali culture so rich—whether that's getting lost in a poem, jamming to Rabindra Sangeet, painting together, or just sharing a good adda over a cup of chai. From big festivals like Rabindra Jayanti to casual open mics and sketchwalks, everything we do is driven entirely by students.
+                  </p>
+                  <p>
+                    There's no strict formality here. It's just about community. If you appreciate a good tune, a moving story, or just want a place to hang out and connect, you've found your spot.
+                  </p>
+                </>
+              )}
             </div>
           </ScrollReveal>
 

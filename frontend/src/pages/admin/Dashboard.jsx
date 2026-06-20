@@ -49,6 +49,10 @@ const Dashboard = () => {
   const [teamBoardYear, setTeamBoardYear] = useState("2026-27");
   const [teamStatus, setTeamStatus] = useState(null);
 
+  // About form state
+  const [aboutContent, setAboutContent] = useState("");
+  const [aboutStatus, setAboutStatus] = useState(null);
+
   const token = localStorage.getItem(ADMIN_KEY);
 
   const logout = () => {
@@ -106,6 +110,13 @@ const Dashboard = () => {
       .catch(console.error);
   };
 
+  const fetchAbout = () => {
+    fetch("/api/about", { headers: { "Authorization": token } })
+      .then(res => res.json())
+      .then(data => { if(data?.success) setAboutContent(data.content); })
+      .catch(console.error);
+  };
+
   useEffect(() => {
     if (!token) {
       navigate("/admin-bla-x7ke", { replace: true });
@@ -116,6 +127,7 @@ const Dashboard = () => {
     else if (activeTab === "notify") fetchNotifications();
     else if (activeTab === "team") fetchTeam();
     else if (activeTab === "categories") fetchCategories();
+    else if (activeTab === "about") fetchAbout();
     else if (activeTab === "events") {
       fetchEvents();
       fetchCategories(); // Needed for the dropdown
@@ -376,6 +388,25 @@ const Dashboard = () => {
     setTeamStatus(null);
   };
 
+  const submitAbout = async (e) => {
+    e.preventDefault();
+    setAboutStatus("Saving...");
+    try {
+      const res = await fetch("/api/update/about", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", "Authorization": token },
+        body: JSON.stringify({ content: aboutContent })
+      });
+      const data = await handleApiError(res).json();
+      if (data.success) {
+        setAboutStatus("About content updated successfully.");
+        setTimeout(() => setAboutStatus(null), 3000);
+      }
+    } catch (e) {
+      setAboutStatus("Error saving: " + e.message);
+    }
+  };
+
   const submitTeam = async (e) => {
     e.preventDefault();
     setTeamStatus("Submitting...");
@@ -417,7 +448,8 @@ const Dashboard = () => {
     { id: "notify", label: "Notifications" },
     { id: "categories", label: "Event Categories" },
     { id: "events", label: "Events" },
-    { id: "team", label: "Board Management" }
+    { id: "team", label: "Board Management" },
+    { id: "about", label: "About Page" }
   ];
 
   // Group team members by board year
@@ -733,6 +765,27 @@ const Dashboard = () => {
                 </div>
                 {teamStatus && <p style={{ color: "var(--terracotta)" }}>{teamStatus}</p>}
                 <button type="submit" className="btn cursor-target">{editTeamId !== null ? "Update Member" : "Add Member"}</button>
+              </form>
+            </div>
+          )}
+
+          {activeTab === "about" && (
+            <div>
+              <h2 style={{ fontFamily: "var(--font-en-display)", color: "var(--deep-red)" }}>About Page Content</h2>
+              <form onSubmit={submitAbout} style={{ display: "flex", flexDirection: "column", gap: "15px", maxWidth: "800px", marginTop: "20px" }}>
+                <div className="field">
+                  <label className="label">Content</label>
+                  <textarea 
+                    className="input" 
+                    style={{ minHeight: "300px" }}
+                    value={aboutContent} 
+                    onChange={e => setAboutContent(e.target.value)} 
+                    required 
+                  />
+                  <p style={{ fontSize: "0.85rem", color: "var(--ink-soft)", marginTop: "5px" }}>Separate paragraphs with a blank line.</p>
+                </div>
+                {aboutStatus && <p style={{ color: "var(--terracotta)" }}>{aboutStatus}</p>}
+                <button type="submit" className="btn cursor-target">Save Content</button>
               </form>
             </div>
           )}

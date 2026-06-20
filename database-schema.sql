@@ -59,3 +59,10 @@ CREATE TABLE team (
     board_year TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Create about_content table
+CREATE TABLE about_content (
+  id integer PRIMARY KEY DEFAULT 1,
+  content text NOT NULL,
+  updated_at timestamp with time zone DEFAULT timezone('utc'::text, now())
+);

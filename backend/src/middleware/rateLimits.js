@@ -20,10 +20,10 @@ const adminLimiter = rateLimit({
 })
 
 const helpLimiter = rateLimit({
-windowMs: 60 * 60 * 1000,
-max: 3,
-standardHeaders: true,
-legacyHeaders: false
+    windowMs: 60 * 60 * 1000,
+    max: 3,
+    standardHeaders: true,
+    legacyHeaders: false
 })
 
 const boardLimiter = rateLimit({
@@ -41,11 +41,19 @@ const eventLimiter = rateLimit({
     legacyHeaders: false
 })
 
+const aboutLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, 
+    max: 100,
+    standardHeaders: true,
+    legacyHeaders: false,
+})
+
 module.exports = {
-notificationLimiter,
-contactLimiter,
-helpLimiter,
-adminLimiter,
-boardLimiter,
-eventLimiter
+    notificationLimiter,
+    contactLimiter,
+    helpLimiter,
+    adminLimiter,
+    boardLimiter,
+    eventLimiter,
+    aboutLimiter
 }

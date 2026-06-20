@@ -64,6 +64,11 @@ export const getPrivacy = async () => {
   return json(res);
 };
 
+export const getAboutContent = async () => {
+  const res = await fetch("/api/about", { headers: { Accept: "application/json" } });
+  return json(res);
+};
+
 export const TURNSTILE_SITEKEY = "0x4AAAAAADnPb97yFwaFokyS";
 
 export const HELP_CATEGORIES = [
