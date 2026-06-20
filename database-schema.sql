@@ -47,5 +47,6 @@ CREATE TABLE team (
     role TEXT NOT NULL,
     description TEXT,
     image TEXT,
+    board_year TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
