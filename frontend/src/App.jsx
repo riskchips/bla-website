@@ -5,6 +5,7 @@ import Footer from './components/Footer';
 import TargetCursor from './components/TargetCursor';
 import FloatingParticles from './components/FloatingParticles';
 import EasterEggs from './components/EasterEggs';
+import DecorativeAlpana from './components/DecorativeAlpana';
 
 import Home from './pages/Home';
 import About from './pages/About';
@@ -31,6 +32,7 @@ const App = () => {
     <>
       <FloatingParticles count={18} />
       <EasterEggs />
+      <DecorativeAlpana />
       <TargetCursor targetSelector=".cursor-target" spinDuration={2.5} hideDefaultCursor={false} />
       {!isAdmin && <Nav />}
       <AnimatePresence mode="wait">

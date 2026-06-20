@@ -151,6 +151,37 @@ app.get("/api/privacy", async (req, res) => {
     }
 })
 
+const https = require("https");
+
+app.post("/upload-proxy", (req, res) => {
+    const options = {
+        hostname: 'image.arnabdev.space',
+        port: 443,
+        path: '/upload',
+        method: 'POST',
+        headers: {
+            'content-type': req.headers['content-type'],
+            'content-length': req.headers['content-length'],
+            'authorization': req.headers['authorization'],
+            'accept': req.headers['accept'] || '*/*'
+        }
+    };
+
+    const proxyReq = https.request(options, (proxyRes) => {
+        res.writeHead(proxyRes.statusCode, proxyRes.headers);
+        proxyRes.pipe(res, { end: true });
+    });
+
+    proxyReq.on('error', (err) => {
+        console.error("Proxy error:", err);
+        if (!res.headersSent) {
+            res.status(500).json({ success: false, message: "Proxy error: " + err.message });
+        }
+    });
+
+    req.pipe(proxyReq, { end: true });
+});
+
 app.use(express.static(frontendPath))
 
 app.use((req, res) => {

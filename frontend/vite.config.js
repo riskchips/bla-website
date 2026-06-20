@@ -11,6 +11,11 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
+      "/upload-proxy": {
+        target: "https://image.arnabdev.space/upload",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/upload-proxy/, '')
+      },
       // Proxy API + /assets to the Express backend during dev.
       "/api": "http://localhost:3000",
       "/assets": "http://localhost:3000",

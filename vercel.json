@@ -13,6 +13,10 @@
   ],
   "routes": [
     {
+      "src": "/upload-proxy",
+      "dest": "https://image.arnabdev.space/upload"
+    },
+    {
       "src": "/api/(.*)",
       "dest": "/backend/src/server.js"
     },

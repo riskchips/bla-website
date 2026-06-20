@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import ImageUploader from "../../components/ImageUploader";
 
 const ADMIN_KEY = "bla_admin_token";
 
@@ -764,11 +765,28 @@ const Dashboard = () => {
                   </div>
                   <div className="field">
                     <label className="label">Poster Image URL (Optional)</label>
-                    <input className="input" value={eventPoster} onChange={e => setEventPoster(e.target.value)} placeholder="https://example.com/poster.jpg" />
+                    <div style={{ display: 'flex', gap: '10px', flexDirection: 'column' }}>
+                      <input className="input" value={eventPoster} onChange={e => setEventPoster(e.target.value)} placeholder="https://example.com/poster.jpg" />
+                      <ImageUploader 
+                        multiple={false} 
+                        buttonText="Upload Poster"
+                        onUploadSuccess={(urls) => setEventPoster(urls[0])} 
+                      />
+                    </div>
                   </div>
                   <div className="field">
                     <label className="label">Gallery Image URLs (Comma separated, Optional)</label>
-                    <textarea className="input" value={eventImages} onChange={e => setEventImages(e.target.value)} rows={5} placeholder="https://example.com/image1.jpg,&#10;https://example.com/image2.jpg" />
+                    <div style={{ display: 'flex', gap: '10px', flexDirection: 'column' }}>
+                      <textarea className="input" value={eventImages} onChange={e => setEventImages(e.target.value)} rows={5} placeholder="https://example.com/image1.jpg,&#10;https://example.com/image2.jpg" />
+                      <ImageUploader 
+                        multiple={true} 
+                        buttonText="Upload Gallery Images"
+                        onUploadSuccess={(urls) => {
+                          const newUrls = urls.join(',\n');
+                          setEventImages(prev => prev ? `${prev},\n${newUrls}` : newUrls);
+                        }} 
+                      />
+                    </div>
                   </div>
                   {eventStatus && <p style={{ color: "var(--terracotta)" }}>{eventStatus}</p>}
                   <button type="submit" className="btn cursor-target">{editEventId !== null ? "Update Event" : "Create Event"}</button>
@@ -861,7 +879,14 @@ const Dashboard = () => {
                   </div>
                   <div className="field">
                     <label className="label">Image URL</label>
-                    <input className="input" value={teamImage} onChange={e => setTeamImage(e.target.value)} />
+                    <div style={{ display: 'flex', gap: '10px', flexDirection: 'column' }}>
+                      <input className="input" value={teamImage} onChange={e => setTeamImage(e.target.value)} />
+                      <ImageUploader 
+                        multiple={false} 
+                        buttonText="Upload Profile Picture"
+                        onUploadSuccess={(urls) => setTeamImage(urls[0])} 
+                      />
+                    </div>
                   </div>
                   {teamStatus && <p style={{ color: "var(--terracotta)" }}>{teamStatus}</p>}
                   <button type="submit" className="btn cursor-target">{editTeamId !== null ? "Update Member" : "Add Member"}</button>
