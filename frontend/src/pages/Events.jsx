@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import PageTransition from "../components/PageTransition";
 import Ornament from "../components/Ornament";
 import Lightbox from "../components/Lightbox";
 import { SkeletonCard } from "../components/Skeleton";
-import { getEvents } from "../api";
+import { getEvents, getCategories } from "../api";
 import useScrollReveal from "../hooks/useScrollReveal";
 
 /* ─── Scroll-Reveal wrapper ─── */
@@ -111,17 +111,52 @@ const formatDate = (ts) => {
 /* ─── Main Events Page ─── */
 const Events = () => {
   const [events, setEvents] = useState(null);
+  const [categories, setCategories] = useState([]);
   const [err, setErr] = useState(null);
-  const [lightbox, setLightbox] = useState(null);
+  
+  // Gallery Lightbox state
+  const [lightboxImages, setLightboxImages] = useState(null);
 
   const load = () => {
     setErr(null);
     setEvents(null);
-    getEvents()
-      .then((r) => setEvents(r.events || []))
+    Promise.all([getEvents(), getCategories()])
+      .then(([rEvents, rCategories]) => {
+        setEvents(rEvents.events || []);
+        const sortedCats = (rCategories.categories || []).sort((a,b) => a.sort_order - b.sort_order);
+        setCategories(sortedCats);
+      })
       .catch((e) => setErr(e.message));
   };
+  
   useEffect(load, []);
+
+  const eventsByCategory = useMemo(() => {
+    if (!events) return {};
+    const grouped = {};
+    
+    // Initialize groups in sorted order
+    categories.forEach(c => {
+        grouped[c.name] = [];
+    });
+    grouped["Other Events"] = []; 
+
+    events.forEach(ev => {
+        const catName = ev.event_categories?.name;
+        if (catName && grouped[catName]) {
+            grouped[catName].push(ev);
+        } else {
+            grouped["Other Events"].push(ev);
+        }
+    });
+
+    // Remove empty categories
+    Object.keys(grouped).forEach(k => {
+        if (grouped[k].length === 0) delete grouped[k];
+    });
+
+    return grouped;
+  }, [events, categories]);
 
   return (
     <PageTransition>
@@ -169,73 +204,99 @@ const Events = () => {
             <div className="empty">No events yet. সাজানো হচ্ছে…</div>
           )}
 
-          {/* ── Events grid ── */}
+          {/* ── Events Grouped by Category ── */}
           {events && events.length > 0 && (
-            <div className="grid" style={{ gap: 28 }}>
-              {events.map((ev, i) => (
-                <ScrollReveal key={ev.id} delay={0.08 * Math.min(i, 6)}>
-                  <article
-                    className="card event"
-                    style={{
-                      transition: "transform 0.4s cubic-bezier(0.22,1,0.36,1), box-shadow 0.4s ease",
-                    }}
-                  >
-                    <div>
-                      <h3>{ev.name}</h3>
-                      <div className="when bn-body" style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        {formatDate(ev.timestamp)}
-                      </div>
-                      <BengaliCalendarBadge date={formatDate(ev.timestamp)} />
-                      <p className="desc">{ev.description}</p>
-                    </div>
-
-                    {ev.gallery && ev.gallery.length > 0 && (
-                      <div className="event-gallery">
-                        {ev.gallery.slice(0, 4).map((url, j) => (
-                          <div
-                            key={j}
-                            style={{
-                              overflow: "hidden",
-                              borderRadius: 2,
-                              border: "1px solid var(--line)",
-                            }}
-                          >
-                            <img
-                              src={url}
-                              alt={`${ev.name} gallery image ${j + 1}`}
-                              loading="lazy"
-                              className="cursor-target"
-                              onClick={() => setLightbox(url)}
+            <div style={{ display: "flex", flexDirection: "column", gap: "60px" }}>
+              {Object.entries(eventsByCategory).map(([catName, catEvents]) => (
+                  <div key={catName}>
+                      <ScrollReveal>
+                          <h2 style={{ 
+                              fontFamily: "var(--font-en-display)", 
+                              color: "var(--deep-red)", 
+                              borderBottom: "1px solid var(--terracotta)", 
+                              paddingBottom: "10px", 
+                              marginBottom: "30px",
+                              display: "inline-block"
+                          }}>
+                              {catName}
+                          </h2>
+                      </ScrollReveal>
+                      
+                      <div className="grid" style={{ gap: 28 }}>
+                        {catEvents.map((ev, i) => (
+                          <ScrollReveal key={ev.id} delay={0.08 * Math.min(i, 6)}>
+                            <article
+                              className="card event"
                               style={{
-                                width: "100%",
-                                aspectRatio: "1 / 1",
-                                objectFit: "cover",
-                                display: "block",
-                                cursor: "zoom-in",
-                                transition: "transform 0.5s cubic-bezier(0.22,1,0.36,1), filter 0.4s ease",
+                                transition: "transform 0.4s cubic-bezier(0.22,1,0.36,1), box-shadow 0.4s ease",
+                                display: "flex",
+                                flexDirection: "column"
                               }}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.transform = "scale(1.06)";
-                                e.currentTarget.style.filter = "brightness(1.05)";
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.transform = "scale(1)";
-                                e.currentTarget.style.filter = "brightness(1)";
-                              }}
-                            />
-                          </div>
+                            >
+                              {/* Poster Image */}
+                              {ev.poster_image && (
+                                  <div 
+                                      className="cursor-target"
+                                      onClick={() => ev.gallery?.length > 0 ? setLightboxImages(ev.gallery) : null}
+                                      style={{ 
+                                          margin: "-24px -24px 20px -24px", 
+                                          overflow: "hidden", 
+                                          borderTopLeftRadius: "8px",
+                                          borderTopRightRadius: "8px",
+                                          cursor: ev.gallery?.length > 0 ? "pointer" : "default"
+                                      }}
+                                  >
+                                      <img 
+                                          src={ev.poster_image} 
+                                          alt={`${ev.name} Poster`} 
+                                          style={{
+                                              width: "100%",
+                                              height: "250px",
+                                              objectFit: "cover",
+                                              display: "block",
+                                              transition: "transform 0.5s ease"
+                                          }}
+                                          onMouseEnter={(e) => {
+                                              if(ev.gallery?.length > 0) e.currentTarget.style.transform = "scale(1.03)";
+                                          }}
+                                          onMouseLeave={(e) => {
+                                              e.currentTarget.style.transform = "scale(1)";
+                                          }}
+                                      />
+                                  </div>
+                              )}
+
+                              <div style={{ flex: 1 }}>
+                                <h3>{ev.name}</h3>
+                                <div className="when bn-body" style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                  {formatDate(ev.timestamp)}
+                                </div>
+                                <BengaliCalendarBadge date={formatDate(ev.timestamp)} />
+                                <p className="desc" style={{ marginTop: "15px" }}>{ev.description}</p>
+                              </div>
+
+                              {/* Gallery Button */}
+                              {ev.gallery && ev.gallery.length > 0 && (
+                                <button 
+                                    className="btn ghost cursor-target" 
+                                    style={{ marginTop: "20px", width: "100%", justifyContent: "center" }}
+                                    onClick={() => setLightboxImages(ev.gallery)}
+                                >
+                                    View Gallery ({ev.gallery.length} Images)
+                                </button>
+                              )}
+                            </article>
+                          </ScrollReveal>
                         ))}
                       </div>
-                    )}
-                  </article>
-                </ScrollReveal>
+                  </div>
               ))}
             </div>
           )}
         </div>
       </section>
 
-      <Lightbox src={lightbox} onClose={() => setLightbox(null)} />
+      <Lightbox images={lightboxImages} onClose={() => setLightboxImages(null)} />
     </PageTransition>
   );
 };

@@ -12,6 +12,7 @@ const Dashboard = () => {
   const [notifications, setNotifications] = useState([]);
   const [team, setTeam] = useState([]);
   const [events, setEvents] = useState([]);
+  const [categories, setCategories] = useState([]);
   
   // Notification form state
   const [notifTitle, setNotifTitle] = useState("");
@@ -21,12 +22,22 @@ const Dashboard = () => {
   const [notifBtnLink, setNotifBtnLink] = useState("");
   const [notifStatus, setNotifStatus] = useState(null);
 
+  // Category form state
+  const [editCategoryId, setEditCategoryId] = useState(null);
+  const [categoryName, setCategoryName] = useState("");
+  const [categorySortOrder, setCategorySortOrder] = useState("0");
+  const [categoryStatus, setCategoryStatus] = useState(null);
+  const [draggedCatId, setDraggedCatId] = useState(null);
+  const [isUpdatingOrder, setIsUpdatingOrder] = useState(false);
+
   // Event form state
   const [editEventId, setEditEventId] = useState(null); // null means creating new
   const [eventName, setEventName] = useState("");
   const [eventDesc, setEventDesc] = useState("");
   const [eventDate, setEventDate] = useState("");
   const [eventImages, setEventImages] = useState("");
+  const [eventPoster, setEventPoster] = useState("");
+  const [eventCategoryId, setEventCategoryId] = useState("");
   const [eventStatus, setEventStatus] = useState(null);
 
   // Team form state
@@ -68,21 +79,28 @@ const Dashboard = () => {
   };
 
   const fetchNotifications = () => {
-    fetch("/api/notifications")
+    fetch("/api/notifications", { headers: { "Authorization": token } })
       .then(res => res.json())
       .then(data => { if(data?.success) setNotifications(data.notifications); })
       .catch(console.error);
   };
 
   const fetchTeam = () => {
-    fetch("/api/board")
+    fetch("/api/board", { headers: { "Authorization": token } })
       .then(res => res.json())
       .then(data => { if(data?.success) setTeam(data.team); })
       .catch(console.error);
   };
 
+  const fetchCategories = () => {
+    fetch("/api/get/categories", { headers: { "Authorization": token } })
+      .then(res => res.json())
+      .then(data => { if(data?.success) setCategories(data.categories); })
+      .catch(console.error);
+  };
+
   const fetchEvents = () => {
-    fetch("/api/get/events")
+    fetch("/api/get/events", { headers: { "Authorization": token } })
       .then(res => res.json())
       .then(data => { if(data?.success) setEvents(data.events); })
       .catch(console.error);
@@ -97,7 +115,11 @@ const Dashboard = () => {
     else if (activeTab === "help") fetchGrievances();
     else if (activeTab === "notify") fetchNotifications();
     else if (activeTab === "team") fetchTeam();
-    else if (activeTab === "events") fetchEvents();
+    else if (activeTab === "categories") fetchCategories();
+    else if (activeTab === "events") {
+      fetchEvents();
+      fetchCategories(); // Needed for the dropdown
+    }
   }, [activeTab, token, navigate]);
 
   // --- Deletion Functions ---
@@ -149,6 +171,63 @@ const Dashboard = () => {
     } catch (e) { console.error(e); }
   };
 
+  const handleCategoryDragStart = (e, id) => {
+    setDraggedCatId(id);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleCategoryDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleCategoryDrop = async (e, targetId) => {
+    e.preventDefault();
+    if (!draggedCatId || draggedCatId === targetId) return;
+
+    const oldIndex = categories.findIndex(c => c.id === draggedCatId);
+    const newIndex = categories.findIndex(c => c.id === targetId);
+
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const newCats = [...categories];
+    const [movedCat] = newCats.splice(oldIndex, 1);
+    newCats.splice(newIndex, 0, movedCat);
+
+    const updatedCats = newCats.map((c, i) => ({ ...c, sort_order: i }));
+    setCategories(updatedCats);
+    setIsUpdatingOrder(true);
+
+    try {
+      const res = await fetch("/api/update/categories/order", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", "Authorization": token },
+        body: JSON.stringify({ orders: updatedCats.map(c => ({ id: c.id, sort_order: c.sort_order })) })
+      });
+      handleApiError(res);
+      fetchCategories();
+    } catch (err) {
+      console.error(err);
+    }
+    setIsUpdatingOrder(false);
+    setDraggedCatId(null);
+  };
+
+  const deleteCategory = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this category?")) return;
+    try {
+      const res = await fetch(`/api/delete/category/${id}`, {
+        method: "DELETE", headers: { "Authorization": token }
+      });
+      handleApiError(res);
+      fetchCategories();
+      if (editCategoryId === id) {
+        setEditCategoryId(null);
+        setCategoryName(""); setCategorySortOrder("0");
+      }
+    } catch (e) { console.error(e); }
+  };
+
   const deleteEvent = async (id) => {
     if (!window.confirm("Are you sure you want to delete this event?")) return;
     try {
@@ -159,7 +238,7 @@ const Dashboard = () => {
       fetchEvents();
       if (editEventId === id) {
         setEditEventId(null);
-        setEventName(""); setEventDesc(""); setEventDate(""); setEventImages("");
+        setEventName(""); setEventDesc(""); setEventDate(""); setEventImages(""); setEventPoster(""); setEventCategoryId("");
       }
     } catch (e) { console.error(e); }
   };
@@ -190,6 +269,42 @@ const Dashboard = () => {
     }
   };
 
+  const startEditCategory = (id, cat) => {
+    setEditCategoryId(id);
+    setCategoryName(cat.name);
+    setCategorySortOrder(cat.sort_order.toString());
+    setCategoryStatus(null);
+  };
+
+  const submitCategory = async (e) => {
+    e.preventDefault();
+    setCategoryStatus("Submitting...");
+
+    const isEdit = editCategoryId !== null;
+    const url = isEdit ? `/api/update/category/${editCategoryId}` : "/api/create/category";
+    const method = isEdit ? "PUT" : "POST";
+
+    try {
+      const res = await fetch(url, {
+        method: method,
+        headers: { "Content-Type": "application/json", "Authorization": token },
+        body: JSON.stringify({ name: categoryName, sort_order: parseInt(categorySortOrder) })
+      });
+      handleApiError(res);
+      const data = await res.json();
+      if (data.success) {
+        setCategoryStatus(`Category ${isEdit ? "updated" : "created"} successfully!`);
+        setCategoryName(""); setCategorySortOrder("0");
+        setEditCategoryId(null);
+        fetchCategories();
+      } else {
+        setCategoryStatus(data.message || "Failed to submit.");
+      }
+    } catch (err) {
+      setCategoryStatus("Error connecting to server.");
+    }
+  };
+
   const startEditEvent = (id, ev) => {
     setEditEventId(id);
     setEventName(ev.name);
@@ -202,6 +317,8 @@ const Dashboard = () => {
     setEventDate(`${year}-${month}-${day}`);
     
     setEventImages((ev.gallery || []).join(",\n"));
+    setEventPoster(ev.poster_image || "");
+    setEventCategoryId(ev.category_id || "");
     setEventStatus(null);
   };
 
@@ -225,13 +342,20 @@ const Dashboard = () => {
       const res = await fetch(url, {
         method: method,
         headers: { "Content-Type": "application/json", "Authorization": token },
-        body: JSON.stringify({ name: eventName, description: eventDesc, timestamp, gallery })
+        body: JSON.stringify({ 
+          name: eventName, 
+          description: eventDesc, 
+          timestamp, 
+          gallery,
+          poster_image: eventPoster,
+          category_id: eventCategoryId || null
+        })
       });
       handleApiError(res);
       const data = await res.json();
       if (data.success) {
         setEventStatus(`Event ${isEdit ? "updated" : "created"} successfully!`);
-        setEventName(""); setEventDesc(""); setEventDate(""); setEventImages("");
+        setEventName(""); setEventDesc(""); setEventDate(""); setEventImages(""); setEventPoster(""); setEventCategoryId("");
         setEditEventId(null);
         fetchEvents();
       } else {
@@ -291,6 +415,7 @@ const Dashboard = () => {
     { id: "contacts", label: "Contacts" },
     { id: "help", label: "Help Requests" },
     { id: "notify", label: "Notifications" },
+    { id: "categories", label: "Event Categories" },
     { id: "events", label: "Events" },
     { id: "team", label: "Board Management" }
   ];
@@ -422,16 +547,79 @@ const Dashboard = () => {
             </div>
           )}
 
+          {activeTab === "categories" && (
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "15px" }}>
+                <h2 style={{ fontFamily: "var(--font-en-display)", color: "var(--deep-red)", margin: 0 }}>Event Categories</h2>
+                {isUpdatingOrder && <span style={{ fontSize: "0.8rem", color: "var(--gold)" }}>Updating order...</span>}
+              </div>
+              <p style={{ fontSize: "0.9rem", color: "var(--ink-soft)", marginBottom: "20px" }}>Drag and drop to reorder categories.</p>
+              {categories.length === 0 ? <p>No categories found.</p> : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "30px" }}>
+                  {categories.map((cat) => (
+                    <div 
+                      key={cat.id} 
+                      draggable 
+                      onDragStart={(e) => handleCategoryDragStart(e, cat.id)}
+                      onDragOver={handleCategoryDragOver}
+                      onDrop={(e) => handleCategoryDrop(e, cat.id)}
+                      style={{ 
+                          border: "1px solid #ddd", 
+                          padding: "10px", 
+                          borderRadius: "8px", 
+                          position: "relative",
+                          cursor: "grab",
+                          opacity: draggedCatId === cat.id ? 0.5 : 1,
+                          backgroundColor: "white"
+                      }}
+                    >
+                      <strong style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        <span style={{ cursor: "grab", color: "#ccc" }}>☰</span> {cat.name}
+                      </strong>
+                      <p style={{ margin: "5px 0 0", fontSize: "0.9rem" }}>Sort Order: {cat.sort_order}</p>
+                      <div style={{ position: "absolute", top: "10px", right: "10px", display: "flex", gap: "5px" }}>
+                        <button onClick={() => startEditCategory(cat.id, cat)} className="btn ghost cursor-target" style={{ padding: "4px 8px", fontSize: "0.8rem" }}>Edit</button>
+                        <button onClick={() => deleteCategory(cat.id)} className="btn cursor-target" style={{ background: "var(--deep-red)", padding: "4px 8px", fontSize: "0.8rem" }}>Delete</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "20px", maxWidth: "500px" }}>
+                <h2 style={{ fontFamily: "var(--font-en-display)", color: "var(--deep-red)", margin: 0 }}>
+                  {editCategoryId !== null ? "Edit Category" : "Create Category"}
+                </h2>
+                {editCategoryId !== null && (
+                  <button onClick={() => { setEditCategoryId(null); setCategoryName(""); setCategorySortOrder("0"); }} className="btn ghost cursor-target" style={{ padding: "4px 8px", fontSize: "0.8rem" }}>Cancel Edit</button>
+                )}
+              </div>
+              <form onSubmit={submitCategory} style={{ display: "flex", flexDirection: "column", gap: "15px", maxWidth: "500px", marginTop: "15px" }}>
+                <div className="field">
+                  <label className="label">Category Name</label>
+                  <input className="input" value={categoryName} onChange={e => setCategoryName(e.target.value)} required />
+                </div>
+                <div className="field">
+                  <label className="label">Sort Order (Lower is first)</label>
+                  <input type="number" className="input" value={categorySortOrder} onChange={e => setCategorySortOrder(e.target.value)} required />
+                </div>
+                {categoryStatus && <p style={{ color: "var(--terracotta)" }}>{categoryStatus}</p>}
+                <button type="submit" className="btn cursor-target">{editCategoryId !== null ? "Update Category" : "Create Category"}</button>
+              </form>
+            </div>
+          )}
+
           {activeTab === "events" && (
             <div>
               <h2 style={{ fontFamily: "var(--font-en-display)", color: "var(--deep-red)" }}>Current Events</h2>
               {events.length === 0 ? <p>No events found.</p> : (
                 <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "30px" }}>
                   {events.map((ev) => (
-                    <div key={ev.id} style={{ border: "1px solid #ddd", padding: "10px", borderRadius: "8px", position: "relative" }}>
+                    <div key={ev.id} style={{ border: "1px solid #ddd", padding: "10px", borderRadius: "8px", position: "relative", paddingRight: "120px" }}>
                       <strong>{ev.name}</strong> - {new Date(parseInt(ev.timestamp)).toLocaleDateString()}
                       <p style={{ margin: "5px 0 0", fontSize: "0.9rem" }}>{ev.description}</p>
                       <p style={{ margin: "5px 0 0", fontSize: "0.8rem", color: "var(--ink-soft)" }}>Images: {ev.gallery?.length || 0}</p>
+                      <p style={{ margin: "5px 0 0", fontSize: "0.8rem", color: "var(--gold)" }}>Category: {ev.event_categories?.name || "None"}</p>
                       <div style={{ position: "absolute", top: "10px", right: "10px", display: "flex", gap: "5px" }}>
                         <button onClick={() => startEditEvent(ev.id, ev)} className="btn ghost cursor-target" style={{ padding: "4px 8px", fontSize: "0.8rem" }}>Edit</button>
                         <button onClick={() => deleteEvent(ev.id)} className="btn cursor-target" style={{ background: "var(--deep-red)", padding: "4px 8px", fontSize: "0.8rem" }}>Delete</button>
@@ -446,7 +634,7 @@ const Dashboard = () => {
                   {editEventId !== null ? "Edit Event" : "Create Event"}
                 </h2>
                 {editEventId !== null && (
-                  <button onClick={() => { setEditEventId(null); setEventName(""); setEventDesc(""); setEventDate(""); setEventImages(""); }} className="btn ghost cursor-target" style={{ padding: "4px 8px", fontSize: "0.8rem" }}>Cancel Edit</button>
+                  <button onClick={() => { setEditEventId(null); setEventName(""); setEventDesc(""); setEventDate(""); setEventImages(""); setEventPoster(""); setEventCategoryId(""); }} className="btn ghost cursor-target" style={{ padding: "4px 8px", fontSize: "0.8rem" }}>Cancel Edit</button>
                 )}
               </div>
               <form onSubmit={submitEvent} style={{ display: "flex", flexDirection: "column", gap: "15px", maxWidth: "500px", marginTop: "15px" }}>
@@ -455,12 +643,25 @@ const Dashboard = () => {
                   <input className="input" value={eventName} onChange={e => setEventName(e.target.value)} required />
                 </div>
                 <div className="field">
+                  <label className="label">Category</label>
+                  <select className="input" value={eventCategoryId} onChange={e => setEventCategoryId(e.target.value)}>
+                    <option value="">No Category</option>
+                    {categories.map(cat => (
+                      <option key={cat.id} value={cat.id}>{cat.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="field">
                   <label className="label">Description</label>
                   <textarea className="input" value={eventDesc} onChange={e => setEventDesc(e.target.value)} required rows={4} />
                 </div>
                 <div className="field">
                   <label className="label">Date</label>
                   <input type="date" className="input" value={eventDate} onChange={e => setEventDate(e.target.value)} required />
+                </div>
+                <div className="field">
+                  <label className="label">Poster Image URL (Optional)</label>
+                  <input className="input" value={eventPoster} onChange={e => setEventPoster(e.target.value)} placeholder="https://example.com/poster.jpg" />
                 </div>
                 <div className="field">
                   <label className="label">Gallery Image URLs (Comma separated, Optional)</label>

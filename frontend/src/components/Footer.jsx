@@ -138,7 +138,7 @@ const Footer = () => {
                   className="bn"
                   style={{ color: "var(--ink-soft)", fontSize: 14 }}
                 >
-                  বাংলা সাহিত্য সংঘ
+                  ঐকতান
                 </div>
               </div>
             </div>

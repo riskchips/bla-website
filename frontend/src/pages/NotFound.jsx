@@ -193,7 +193,7 @@ const NotFound = () => (
           }}
         >
           <span>✾</span>
-          <span className="bn">বাংলা সাহিত্য সংঘ</span>
+          <span className="bn">ঐকতান</span>
           <span>✾</span>
         </div>
       </div>

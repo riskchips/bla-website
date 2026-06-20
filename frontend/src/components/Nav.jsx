@@ -65,7 +65,7 @@ const Nav = () => {
           />
           <span className="nav-brand-text">
             <span className="en">Bengali Literary Association</span>
-            <span className="bn">বাংলা সাহিত্য সংঘ</span>
+            <span className="bn">ঐকতান</span>
           </span>
         </Link>
 

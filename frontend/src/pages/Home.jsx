@@ -263,7 +263,7 @@ const Home = () => {
           </div>
 
           <div className="hero-tag bn" style={{ marginTop: "1rem" }}>
-            বাংলা সাহিত্য সংঘ
+            ঐকতান
           </div>
 
           <p
