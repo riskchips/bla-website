@@ -24,28 +24,35 @@ module.exports = (req, res, next) => {
         })
     }
 
-    const expectedOrigin = process.env.FRONTEND_URL || `https://${req.headers.host}`
+    const host = req.headers["x-forwarded-host"] || req.headers.host
+    const expectedOrigin = process.env.FRONTEND_URL || `https://${host}`
 
-    if (
-        origin &&
-        !origin.startsWith(process.env.FRONTEND_URL) &&
-        !origin.startsWith(expectedOrigin)
-    ) {
-        return res.status(403).json({
-            success: false,
-            message: "Invalid Origin"
-        })
+    if (origin) {
+        const isValidOrigin =
+            (process.env.FRONTEND_URL && origin.startsWith(process.env.FRONTEND_URL)) ||
+            origin.startsWith(expectedOrigin) ||
+            origin.includes(host)
+
+        if (!isValidOrigin) {
+            return res.status(403).json({
+                success: false,
+                message: "Invalid Origin"
+            })
+        }
     }
 
-    if (
-        referer &&
-        !referer.startsWith(process.env.FRONTEND_URL) &&
-        !referer.startsWith(expectedOrigin)
-    ) {
-        return res.status(403).json({
-            success: false,
-            message: "Invalid Referer"
-        })
+    if (referer) {
+        const isValidReferer =
+            (process.env.FRONTEND_URL && referer.startsWith(process.env.FRONTEND_URL)) ||
+            referer.startsWith(expectedOrigin) ||
+            referer.includes(host)
+
+        if (!isValidReferer) {
+            return res.status(403).json({
+                success: false,
+                message: "Invalid Referer"
+            })
+        }
     }
 
     if (!secFetchSite) {
