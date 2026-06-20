@@ -48,10 +48,15 @@ const Dashboard = () => {
   const [teamImage, setTeamImage] = useState("");
   const [teamBoardYear, setTeamBoardYear] = useState("2026-27");
   const [teamStatus, setTeamStatus] = useState(null);
+  const [draggedTeamId, setDraggedTeamId] = useState(null);
+  const [dragOverTeamId, setDragOverTeamId] = useState(null);
+  const [isUpdatingTeamOrder, setIsUpdatingTeamOrder] = useState(false);
 
   // About form state
   const [aboutContent, setAboutContent] = useState("");
   const [aboutStatus, setAboutStatus] = useState(null);
+
+  const [dragOverCatId, setDragOverCatId] = useState(null);
 
   const token = localStorage.getItem(ADMIN_KEY);
 
@@ -188,13 +193,15 @@ const Dashboard = () => {
     e.dataTransfer.effectAllowed = "move";
   };
 
-  const handleCategoryDragOver = (e) => {
+  const handleCategoryDragOver = (e, id) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
+    setDragOverCatId(id);
   };
 
   const handleCategoryDrop = async (e, targetId) => {
     e.preventDefault();
+    setDragOverCatId(null);
     if (!draggedCatId || draggedCatId === targetId) return;
 
     const oldIndex = categories.findIndex(c => c.id === draggedCatId);
@@ -223,6 +230,60 @@ const Dashboard = () => {
     }
     setIsUpdatingOrder(false);
     setDraggedCatId(null);
+  };
+
+  const handleTeamDragStart = (e, id) => {
+    setDraggedTeamId(id);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleTeamDragOver = (e, id) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    setDragOverTeamId(id);
+  };
+
+  const handleTeamDrop = async (e, targetId, yearGroup) => {
+    e.preventDefault();
+    setDragOverTeamId(null);
+    if (!draggedTeamId || draggedTeamId === targetId) return;
+
+    // Find the members for this year
+    const members = [...yearGroup.members];
+    const oldIndex = members.findIndex(m => m.id === draggedTeamId);
+    const newIndex = members.findIndex(m => m.id === targetId);
+
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const [movedMember] = members.splice(oldIndex, 1);
+    members.splice(newIndex, 0, movedMember);
+
+    // Update their sort_order
+    const updatedMembers = members.map((m, i) => ({ ...m, sort_order: i }));
+
+    // Optimistically update UI
+    setTeam(prev => prev.map(m => {
+      const updated = updatedMembers.find(um => um.id === m.id);
+      return updated ? updated : m;
+    }).sort((a,b) => {
+      if(a.board_year !== b.board_year) return b.board_year.localeCompare(a.board_year);
+      return a.sort_order - b.sort_order;
+    }));
+    setIsUpdatingTeamOrder(true);
+
+    try {
+      const res = await fetch("/api/update/board/order", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", "Authorization": token },
+        body: JSON.stringify({ orders: updatedMembers.map(m => ({ id: m.id, sort_order: m.sort_order })) })
+      });
+      handleApiError(res);
+      fetchTeam(); // Re-fetch to confirm
+    } catch (err) {
+      console.error(err);
+    }
+    setIsUpdatingTeamOrder(false);
+    setDraggedTeamId(null);
   };
 
   const deleteCategory = async (id) => {
@@ -580,192 +641,232 @@ const Dashboard = () => {
           )}
 
           {activeTab === "categories" && (
-            <div>
-              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "15px" }}>
-                <h2 style={{ fontFamily: "var(--font-en-display)", color: "var(--deep-red)", margin: 0 }}>Event Categories</h2>
-                {isUpdatingOrder && <span style={{ fontSize: "0.8rem", color: "var(--gold)" }}>Updating order...</span>}
-              </div>
-              <p style={{ fontSize: "0.9rem", color: "var(--ink-soft)", marginBottom: "20px" }}>Drag and drop to reorder categories.</p>
-              {categories.length === 0 ? <p>No categories found.</p> : (
-                <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "30px" }}>
-                  {categories.map((cat) => (
-                    <div 
-                      key={cat.id} 
-                      draggable 
-                      onDragStart={(e) => handleCategoryDragStart(e, cat.id)}
-                      onDragOver={handleCategoryDragOver}
-                      onDrop={(e) => handleCategoryDrop(e, cat.id)}
-                      style={{ 
-                          border: "1px solid #ddd", 
-                          padding: "10px", 
-                          borderRadius: "8px", 
-                          position: "relative",
-                          cursor: "grab",
-                          opacity: draggedCatId === cat.id ? 0.5 : 1,
-                          backgroundColor: "white"
-                      }}
-                    >
-                      <strong style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                        <span style={{ cursor: "grab", color: "#ccc" }}>☰</span> {cat.name}
-                      </strong>
-                      <p style={{ margin: "5px 0 0", fontSize: "0.9rem" }}>Sort Order: {cat.sort_order}</p>
-                      <div style={{ position: "absolute", top: "10px", right: "10px", display: "flex", gap: "5px" }}>
-                        <button onClick={() => startEditCategory(cat.id, cat)} className="btn ghost cursor-target" style={{ padding: "4px 8px", fontSize: "0.8rem" }}>Edit</button>
-                        <button onClick={() => deleteCategory(cat.id)} className="btn cursor-target" style={{ background: "var(--deep-red)", padding: "4px 8px", fontSize: "0.8rem" }}>Delete</button>
-                      </div>
-                    </div>
-                  ))}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "40px", alignItems: "flex-start" }}>
+              <div style={{ flex: "1 1 400px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "15px" }}>
+                  <h2 style={{ fontFamily: "var(--font-en-display)", color: "var(--deep-red)", margin: 0 }}>Event Categories</h2>
+                  {isUpdatingOrder && <span style={{ fontSize: "0.8rem", color: "var(--gold)" }}>Updating order...</span>}
                 </div>
-              )}
-
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "20px", maxWidth: "500px" }}>
-                <h2 style={{ fontFamily: "var(--font-en-display)", color: "var(--deep-red)", margin: 0 }}>
-                  {editCategoryId !== null ? "Edit Category" : "Create Category"}
-                </h2>
-                {editCategoryId !== null && (
-                  <button onClick={() => { setEditCategoryId(null); setCategoryName(""); setCategorySortOrder("0"); }} className="btn ghost cursor-target" style={{ padding: "4px 8px", fontSize: "0.8rem" }}>Cancel Edit</button>
+                <p style={{ fontSize: "0.9rem", color: "var(--ink-soft)", marginBottom: "20px" }}>Drag and drop to reorder categories.</p>
+                {categories.length === 0 ? <p>No categories found.</p> : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "30px" }}>
+                    {categories.map((cat) => (
+                      <div 
+                        key={cat.id} 
+                        draggable 
+                        onDragStart={(e) => handleCategoryDragStart(e, cat.id)}
+                        onDragEnd={() => { setDraggedCatId(null); setDragOverCatId(null); }}
+                        onDragOver={(e) => handleCategoryDragOver(e, cat.id)}
+                        onDragLeave={() => setDragOverCatId(null)}
+                        onDrop={(e) => handleCategoryDrop(e, cat.id)}
+                        style={{ 
+                            border: "1px solid #ddd", 
+                            borderTop: dragOverCatId === cat.id ? "3px solid var(--moss-green)" : "1px solid #ddd",
+                            padding: "10px", 
+                            borderRadius: "8px", 
+                            position: "relative",
+                            cursor: "grab",
+                            opacity: draggedCatId === cat.id ? 0.5 : 1,
+                            backgroundColor: "white"
+                        }}
+                      >
+                        <strong style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                          <span style={{ cursor: "grab", color: "#ccc" }}>☰</span> {cat.name}
+                        </strong>
+                        <p style={{ margin: "5px 0 0", fontSize: "0.9rem" }}>Sort Order: {cat.sort_order}</p>
+                        <div style={{ position: "absolute", top: "10px", right: "10px", display: "flex", gap: "5px" }}>
+                          <button onClick={() => startEditCategory(cat.id, cat)} className="btn ghost cursor-target" style={{ padding: "4px 8px", fontSize: "0.8rem" }}>Edit</button>
+                          <button onClick={() => deleteCategory(cat.id)} className="btn cursor-target" style={{ background: "var(--deep-red)", padding: "4px 8px", fontSize: "0.8rem", color: "white" }}>Delete</button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
-              <form onSubmit={submitCategory} style={{ display: "flex", flexDirection: "column", gap: "15px", maxWidth: "500px", marginTop: "15px" }}>
-                <div className="field">
-                  <label className="label">Category Name</label>
-                  <input className="input" value={categoryName} onChange={e => setCategoryName(e.target.value)} required />
+
+              <div style={{ flex: "0 0 350px", position: "sticky", top: "20px", background: "var(--paper)", padding: "20px", borderRadius: "12px", border: "1px solid var(--line)", boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
+                  <h2 style={{ fontFamily: "var(--font-en-display)", color: "var(--deep-red)", margin: 0, fontSize: "1.5rem" }}>
+                    {editCategoryId !== null ? "Edit Category" : "Create Category"}
+                  </h2>
+                  {editCategoryId !== null && (
+                    <button onClick={() => { setEditCategoryId(null); setCategoryName(""); setCategorySortOrder("0"); }} className="btn ghost cursor-target" style={{ padding: "4px 8px", fontSize: "0.8rem" }}>Cancel</button>
+                  )}
                 </div>
-                <div className="field">
-                  <label className="label">Sort Order (Lower is first)</label>
-                  <input type="number" className="input" value={categorySortOrder} onChange={e => setCategorySortOrder(e.target.value)} required />
-                </div>
-                {categoryStatus && <p style={{ color: "var(--terracotta)" }}>{categoryStatus}</p>}
-                <button type="submit" className="btn cursor-target">{editCategoryId !== null ? "Update Category" : "Create Category"}</button>
-              </form>
+                <form onSubmit={submitCategory} style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
+                  <div className="field">
+                    <label className="label">Category Name</label>
+                    <input className="input" value={categoryName} onChange={e => setCategoryName(e.target.value)} required />
+                  </div>
+                  <div className="field">
+                    <label className="label">Sort Order (Lower is first)</label>
+                    <input type="number" className="input" value={categorySortOrder} onChange={e => setCategorySortOrder(e.target.value)} required />
+                  </div>
+                  {categoryStatus && <p style={{ color: "var(--terracotta)" }}>{categoryStatus}</p>}
+                  <button type="submit" className="btn cursor-target">{editCategoryId !== null ? "Update Category" : "Create Category"}</button>
+                </form>
+              </div>
             </div>
           )}
 
           {activeTab === "events" && (
-            <div>
-              <h2 style={{ fontFamily: "var(--font-en-display)", color: "var(--deep-red)" }}>Current Events</h2>
-              {events.length === 0 ? <p>No events found.</p> : (
-                <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "30px" }}>
-                  {events.map((ev) => (
-                    <div key={ev.id} style={{ border: "1px solid #ddd", padding: "10px", borderRadius: "8px", position: "relative", paddingRight: "120px" }}>
-                      <strong>{ev.name}</strong> - {new Date(parseInt(ev.timestamp)).toLocaleDateString()}
-                      <p style={{ margin: "5px 0 0", fontSize: "0.9rem" }}>{ev.description}</p>
-                      <p style={{ margin: "5px 0 0", fontSize: "0.8rem", color: "var(--ink-soft)" }}>Images: {ev.gallery?.length || 0}</p>
-                      <p style={{ margin: "5px 0 0", fontSize: "0.8rem", color: "var(--gold)" }}>Category: {ev.event_categories?.name || "None"}</p>
-                      <div style={{ position: "absolute", top: "10px", right: "10px", display: "flex", gap: "5px" }}>
-                        <button onClick={() => startEditEvent(ev.id, ev)} className="btn ghost cursor-target" style={{ padding: "4px 8px", fontSize: "0.8rem" }}>Edit</button>
-                        <button onClick={() => deleteEvent(ev.id)} className="btn cursor-target" style={{ background: "var(--deep-red)", padding: "4px 8px", fontSize: "0.8rem" }}>Delete</button>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "40px", alignItems: "flex-start" }}>
+              <div style={{ flex: "1 1 400px" }}>
+                <h2 style={{ fontFamily: "var(--font-en-display)", color: "var(--deep-red)" }}>Current Events</h2>
+                {events.length === 0 ? <p>No events found.</p> : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "30px" }}>
+                    {events.map((ev) => (
+                      <div key={ev.id} style={{ border: "1px solid #ddd", padding: "10px", borderRadius: "8px", position: "relative", paddingRight: "120px" }}>
+                        <strong>{ev.name}</strong> - {new Date(parseInt(ev.timestamp)).toLocaleDateString()}
+                        <p style={{ margin: "5px 0 0", fontSize: "0.9rem" }}>{ev.description}</p>
+                        <p style={{ margin: "5px 0 0", fontSize: "0.8rem", color: "var(--ink-soft)" }}>Images: {ev.gallery?.length || 0}</p>
+                        <p style={{ margin: "5px 0 0", fontSize: "0.8rem", color: "var(--gold)" }}>Category: {ev.event_categories?.name || "None"}</p>
+                        <div style={{ position: "absolute", top: "10px", right: "10px", display: "flex", gap: "5px" }}>
+                          <button onClick={() => startEditEvent(ev.id, ev)} className="btn ghost cursor-target" style={{ padding: "4px 8px", fontSize: "0.8rem" }}>Edit</button>
+                          <button onClick={() => deleteEvent(ev.id)} className="btn cursor-target" style={{ background: "var(--deep-red)", padding: "4px 8px", fontSize: "0.8rem", color: "white" }}>Delete</button>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "20px", maxWidth: "500px" }}>
-                <h2 style={{ fontFamily: "var(--font-en-display)", color: "var(--deep-red)", margin: 0 }}>
-                  {editEventId !== null ? "Edit Event" : "Create Event"}
-                </h2>
-                {editEventId !== null && (
-                  <button onClick={() => { setEditEventId(null); setEventName(""); setEventDesc(""); setEventDate(""); setEventImages(""); setEventPoster(""); setEventCategoryId(""); }} className="btn ghost cursor-target" style={{ padding: "4px 8px", fontSize: "0.8rem" }}>Cancel Edit</button>
+                    ))}
+                  </div>
                 )}
               </div>
-              <form onSubmit={submitEvent} style={{ display: "flex", flexDirection: "column", gap: "15px", maxWidth: "500px", marginTop: "15px" }}>
-                <div className="field">
-                  <label className="label">Event Name</label>
-                  <input className="input" value={eventName} onChange={e => setEventName(e.target.value)} required />
+
+              <div style={{ flex: "0 0 350px", position: "sticky", top: "20px", background: "var(--paper)", padding: "20px", borderRadius: "12px", border: "1px solid var(--line)", boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
+                  <h2 style={{ fontFamily: "var(--font-en-display)", color: "var(--deep-red)", margin: 0, fontSize: "1.5rem" }}>
+                    {editEventId !== null ? "Edit Event" : "Create Event"}
+                  </h2>
+                  {editEventId !== null && (
+                    <button onClick={() => { setEditEventId(null); setEventName(""); setEventDesc(""); setEventDate(""); setEventImages(""); setEventPoster(""); setEventCategoryId(""); }} className="btn ghost cursor-target" style={{ padding: "4px 8px", fontSize: "0.8rem" }}>Cancel</button>
+                  )}
                 </div>
-                <div className="field">
-                  <label className="label">Category</label>
-                  <select className="input" value={eventCategoryId} onChange={e => setEventCategoryId(e.target.value)}>
-                    <option value="">No Category</option>
-                    {categories.map(cat => (
-                      <option key={cat.id} value={cat.id}>{cat.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="field">
-                  <label className="label">Description</label>
-                  <textarea className="input" value={eventDesc} onChange={e => setEventDesc(e.target.value)} required rows={4} />
-                </div>
-                <div className="field">
-                  <label className="label">Date</label>
-                  <input type="date" className="input" value={eventDate} onChange={e => setEventDate(e.target.value)} required />
-                </div>
-                <div className="field">
-                  <label className="label">Poster Image URL (Optional)</label>
-                  <input className="input" value={eventPoster} onChange={e => setEventPoster(e.target.value)} placeholder="https://example.com/poster.jpg" />
-                </div>
-                <div className="field">
-                  <label className="label">Gallery Image URLs (Comma separated, Optional)</label>
-                  <textarea className="input" value={eventImages} onChange={e => setEventImages(e.target.value)} rows={5} placeholder="https://example.com/image1.jpg,&#10;https://example.com/image2.jpg" />
-                </div>
-                {eventStatus && <p style={{ color: "var(--terracotta)" }}>{eventStatus}</p>}
-                <button type="submit" className="btn cursor-target">{editEventId !== null ? "Update Event" : "Create Event"}</button>
-              </form>
+                <form onSubmit={submitEvent} style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
+                  <div className="field">
+                    <label className="label">Event Name</label>
+                    <input className="input" value={eventName} onChange={e => setEventName(e.target.value)} required />
+                  </div>
+                  <div className="field">
+                    <label className="label">Category</label>
+                    <select className="input" value={eventCategoryId} onChange={e => setEventCategoryId(e.target.value)}>
+                      <option value="">No Category</option>
+                      {categories.map(cat => (
+                        <option key={cat.id} value={cat.id}>{cat.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="field">
+                    <label className="label">Description</label>
+                    <textarea className="input" value={eventDesc} onChange={e => setEventDesc(e.target.value)} required rows={4} />
+                  </div>
+                  <div className="field">
+                    <label className="label">Date</label>
+                    <input type="date" className="input" value={eventDate} onChange={e => setEventDate(e.target.value)} required />
+                  </div>
+                  <div className="field">
+                    <label className="label">Poster Image URL (Optional)</label>
+                    <input className="input" value={eventPoster} onChange={e => setEventPoster(e.target.value)} placeholder="https://example.com/poster.jpg" />
+                  </div>
+                  <div className="field">
+                    <label className="label">Gallery Image URLs (Comma separated, Optional)</label>
+                    <textarea className="input" value={eventImages} onChange={e => setEventImages(e.target.value)} rows={5} placeholder="https://example.com/image1.jpg,&#10;https://example.com/image2.jpg" />
+                  </div>
+                  {eventStatus && <p style={{ color: "var(--terracotta)" }}>{eventStatus}</p>}
+                  <button type="submit" className="btn cursor-target">{editEventId !== null ? "Update Event" : "Create Event"}</button>
+                </form>
+              </div>
             </div>
           )}
 
           {activeTab === "team" && (
-            <div>
-              <h2 style={{ fontFamily: "var(--font-en-display)", color: "var(--deep-red)" }}>Board Members</h2>
-              {groupedTeam.length === 0 ? <p>No Board members found.</p> : (
-                <div style={{ display: "flex", flexDirection: "column", gap: "20px", marginBottom: "30px" }}>
-                  {groupedTeam.map(group => (
-                    <div key={group.year}>
-                        <h3 style={{ borderBottom: "1px solid var(--line)", paddingBottom: "5px" }}>Board {group.year}</h3>
-                        <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "10px" }}>
-                            {group.members.map((member) => (
-                                <div key={member.id} style={{ border: "1px solid #ddd", padding: "10px", borderRadius: "8px", position: "relative" }}>
-                                <strong>{member.name}</strong> - {member.role}
-                                <p style={{ margin: "5px 0 0", fontSize: "0.9rem" }}>{member.description}</p>
-                                <div style={{ position: "absolute", top: "10px", right: "10px", display: "flex", gap: "5px" }}>
-                                    <button onClick={() => startEditTeam(member.id, member)} className="btn ghost cursor-target" style={{ padding: "4px 8px", fontSize: "0.8rem" }}>Edit</button>
-                                    <button onClick={() => deleteTeamMember(member.id)} className="btn cursor-target" style={{ background: "var(--deep-red)", padding: "4px 8px", fontSize: "0.8rem" }}>Delete</button>
-                                </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                  ))}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "40px", alignItems: "flex-start" }}>
+              <div style={{ flex: "1 1 400px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "15px" }}>
+                  <h2 style={{ fontFamily: "var(--font-en-display)", color: "var(--deep-red)", margin: 0 }}>Board Members</h2>
+                  {isUpdatingTeamOrder && <span style={{ fontSize: "0.8rem", color: "var(--gold)" }}>Updating order...</span>}
                 </div>
-              )}
-
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "20px", maxWidth: "500px" }}>
-                <h2 style={{ fontFamily: "var(--font-en-display)", color: "var(--deep-red)", margin: 0 }}>
-                  {editTeamId !== null ? "Edit Board Member" : "Add Board Member"}
-                </h2>
-                {editTeamId !== null && (
-                  <button onClick={() => { setEditTeamId(null); setTeamName(""); setTeamRole(""); setTeamDesc(""); setTeamImage(""); setTeamBoardYear("2026-27"); }} className="btn ghost cursor-target" style={{ padding: "4px 8px", fontSize: "0.8rem" }}>Cancel Edit</button>
+                <p style={{ fontSize: "0.9rem", color: "var(--ink-soft)", marginBottom: "20px" }}>Drag and drop to reorder members within their board year.</p>
+                {groupedTeam.length === 0 ? <p>No Board members found.</p> : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "20px", marginBottom: "30px" }}>
+                    {groupedTeam.map(group => (
+                      <div key={group.year}>
+                          <h3 style={{ borderBottom: "1px solid var(--line)", paddingBottom: "5px" }}>Board {group.year}</h3>
+                          <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "10px" }}>
+                              {group.members.map((member) => (
+                                  <div 
+                                    key={member.id} 
+                                    draggable
+                                    onDragStart={(e) => handleTeamDragStart(e, member.id)}
+                                    onDragEnd={() => { setDraggedTeamId(null); setDragOverTeamId(null); }}
+                                    onDragOver={(e) => handleTeamDragOver(e, member.id)}
+                                    onDragLeave={() => setDragOverTeamId(null)}
+                                    onDrop={(e) => handleTeamDrop(e, member.id, group)}
+                                    style={{ 
+                                      border: "1px solid #ddd", 
+                                      borderTop: dragOverTeamId === member.id ? "3px solid var(--moss-green)" : "1px solid #ddd",
+                                      padding: "10px", 
+                                      borderRadius: "8px", 
+                                      position: "relative",
+                                      cursor: "grab",
+                                      opacity: draggedTeamId === member.id ? 0.5 : 1,
+                                      backgroundColor: "white"
+                                    }}
+                                  >
+                                  <strong style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                    <span style={{ cursor: "grab", color: "#ccc" }}>☰</span> {member.name}
+                                  </strong> - {member.role}
+                                  <p style={{ margin: "5px 0 0", fontSize: "0.9rem" }}>{member.description}</p>
+                                  <p style={{ margin: "5px 0 0", fontSize: "0.8rem", color: "var(--ink-soft)" }}>Sort Order: {member.sort_order}</p>
+                                  <div style={{ position: "absolute", top: "10px", right: "10px", display: "flex", gap: "5px" }}>
+                                      <button onClick={() => startEditTeam(member.id, member)} className="btn ghost cursor-target" style={{ padding: "4px 8px", fontSize: "0.8rem" }}>Edit</button>
+                                      <button onClick={() => deleteTeamMember(member.id)} className="btn cursor-target" style={{ background: "var(--deep-red)", padding: "4px 8px", fontSize: "0.8rem", color: "white" }}>Delete</button>
+                                  </div>
+                                  </div>
+                              ))}
+                          </div>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
-              <form onSubmit={submitTeam} style={{ display: "flex", flexDirection: "column", gap: "15px", maxWidth: "500px", marginTop: "15px" }}>
-                <div className="field">
-                  <label className="label">Board Year</label>
-                  <select className="input" value={teamBoardYear} onChange={e => setTeamBoardYear(e.target.value)} required>
-                    {yearOptions.map(year => (
-                      <option key={year} value={year}>{year}</option>
-                    ))}
-                  </select>
+
+              <div style={{ flex: "0 0 350px", position: "sticky", top: "20px", background: "var(--paper)", padding: "20px", borderRadius: "12px", border: "1px solid var(--line)", boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
+                  <h2 style={{ fontFamily: "var(--font-en-display)", color: "var(--deep-red)", margin: 0, fontSize: "1.5rem" }}>
+                    {editTeamId !== null ? "Edit Member" : "Add Member"}
+                  </h2>
+                  {editTeamId !== null && (
+                    <button onClick={() => { setEditTeamId(null); setTeamName(""); setTeamRole(""); setTeamDesc(""); setTeamImage(""); setTeamBoardYear("2026-27"); }} className="btn ghost cursor-target" style={{ padding: "4px 8px", fontSize: "0.8rem" }}>Cancel</button>
+                  )}
                 </div>
-                <div className="field">
-                  <label className="label">Name</label>
-                  <input className="input" value={teamName} onChange={e => setTeamName(e.target.value)} required />
-                </div>
-                <div className="field">
-                  <label className="label">Role</label>
-                  <input className="input" value={teamRole} onChange={e => setTeamRole(e.target.value)} required />
-                </div>
-                <div className="field">
-                  <label className="label">Description</label>
-                  <textarea className="input" value={teamDesc} onChange={e => setTeamDesc(e.target.value)} />
-                </div>
-                <div className="field">
-                  <label className="label">Image URL</label>
-                  <input className="input" value={teamImage} onChange={e => setTeamImage(e.target.value)} />
-                </div>
-                {teamStatus && <p style={{ color: "var(--terracotta)" }}>{teamStatus}</p>}
-                <button type="submit" className="btn cursor-target">{editTeamId !== null ? "Update Member" : "Add Member"}</button>
-              </form>
+                <form onSubmit={submitTeam} style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
+                  <div className="field">
+                    <label className="label">Board Year</label>
+                    <select className="input" value={teamBoardYear} onChange={e => setTeamBoardYear(e.target.value)} required>
+                      {yearOptions.map(year => (
+                        <option key={year} value={year}>{year}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="field">
+                    <label className="label">Name</label>
+                    <input className="input" value={teamName} onChange={e => setTeamName(e.target.value)} required />
+                  </div>
+                  <div className="field">
+                    <label className="label">Role</label>
+                    <input className="input" value={teamRole} onChange={e => setTeamRole(e.target.value)} required />
+                  </div>
+                  <div className="field">
+                    <label className="label">Description</label>
+                    <textarea className="input" value={teamDesc} onChange={e => setTeamDesc(e.target.value)} />
+                  </div>
+                  <div className="field">
+                    <label className="label">Image URL</label>
+                    <input className="input" value={teamImage} onChange={e => setTeamImage(e.target.value)} />
+                  </div>
+                  {teamStatus && <p style={{ color: "var(--terracotta)" }}>{teamStatus}</p>}
+                  <button type="submit" className="btn cursor-target">{editTeamId !== null ? "Update Member" : "Add Member"}</button>
+                </form>
+              </div>
             </div>
           )}
 

@@ -18,7 +18,8 @@ router.get(
             const { data, error } = await supabase
                 .from("team")
                 .select("*")
-                .order("created_at", { ascending: true })
+                .order("board_year", { ascending: false })
+                .order("sort_order", { ascending: true })
 
             if (error) {
                 return res.status(500).json({
@@ -124,6 +125,31 @@ router.delete(
 )
 
 router.put(
+    "/update/board/order",
+    adminAuth,
+    adminLimiter,
+    async (req, res) => {
+        try {
+            const { orders } = req.body;
+            if (!Array.isArray(orders)) {
+                return res.status(400).json({ success: false, message: "Orders must be an array" });
+            }
+
+            const updates = orders.map(async ({ id, sort_order }) => {
+                return supabase.from("team").update({ sort_order }).eq("id", id);
+            });
+
+            await Promise.all(updates);
+
+            return res.json({ success: true, message: "Order updated" });
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ success: false, message: "Internal Server Error" });
+        }
+    }
+);
+
+router.put(
     "/update/board/:id",
     adminAuth,
     adminLimiter,
@@ -171,6 +197,6 @@ router.put(
             })
         }
     }
-)
+);
 
 module.exports = router

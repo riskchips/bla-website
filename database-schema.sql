@@ -57,6 +57,7 @@ CREATE TABLE team (
     description TEXT,
     image TEXT,
     board_year TEXT,
+    sort_order INTEGER DEFAULT 0,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
