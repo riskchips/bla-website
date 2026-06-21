@@ -926,10 +926,10 @@ button {
 }
 
 /* Generic paper clip style */
-.grid > div {
+.grid > div:has(.notif) {
   position: relative;
 }
-.grid > div::after {
+.grid > div:has(.notif)::after {
   content: "";
   position: absolute;
   width: 25px;
@@ -943,28 +943,28 @@ button {
 }
 
 /* Variant 1: Top Left */
-.grid > :nth-child(4n+1)::after {
+.grid > div:has(.notif):nth-child(4n+1)::after {
   top: -20px;
   left: 20%;
   transform: rotate(15deg);
 }
 
 /* Variant 2: Right Center (horizontal) */
-.grid > :nth-child(4n+2)::after {
+.grid > div:has(.notif):nth-child(4n+2)::after {
   top: 40%;
   right: -15px;
   transform: rotate(105deg);
 }
 
 /* Variant 3: Bottom Right */
-.grid > :nth-child(4n+3)::after {
+.grid > div:has(.notif):nth-child(4n+3)::after {
   bottom: -20px;
   right: 25%;
   transform: rotate(190deg);
 }
 
 /* Variant 4: Top Right */
-.grid > :nth-child(4n)::after {
+.grid > div:has(.notif):nth-child(4n)::after {
   top: -15px;
   right: 15%;
   transform: rotate(-25deg);
