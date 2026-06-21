@@ -129,8 +129,13 @@ const TargetCursor = ({
     const moveHandler = (e) => moveCursor(e.clientX, e.clientY);
     window.addEventListener("mousemove", moveHandler);
 
+    let lastScrollTime = 0;
     const scrollHandler = () => {
       if (!activeTarget || !cursorRef.current) return;
+      const now = Date.now();
+      if (now - lastScrollTime < 100) return; // Throttle to 100ms
+      lastScrollTime = now;
+
       const { x: offsetX, y: offsetY } = getOffset();
       const mouseX = gsap.getProperty(cursorRef.current, "x") + offsetX;
       const mouseY = gsap.getProperty(cursorRef.current, "y") + offsetY;
