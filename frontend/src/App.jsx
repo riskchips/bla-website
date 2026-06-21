@@ -34,12 +34,14 @@ const PageLoader = () => (
   </div>
 );
 
+import { ReactLenis } from '@studio-freight/react-lenis';
+
 const App = () => {
   const location = useLocation();
   const isAdmin = location.pathname.startsWith(ADMIN_ROOT);
 
   return (
-    <>
+    <ReactLenis root options={{ lerp: 0.1, duration: 1.5, smoothTouch: false }}>
       <FloatingParticles count={18} />
       <EasterEggs />
       <DecorativeAlpana />
@@ -64,7 +66,7 @@ const App = () => {
         </Suspense>
       </AnimatePresence>
       {!isAdmin && <Footer />}
-    </>
+    </ReactLenis>
   );
 };
 
