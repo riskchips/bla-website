@@ -122,6 +122,7 @@ const Footer = () => {
               <img
                 src="/assets/logo.png"
                 alt=""
+                loading="lazy"
                 style={{ width: 40, height: 40 }}
               />
               <div>

@@ -388,7 +388,7 @@ const Home = () => {
       <AlpanaDivider />
 
       {/* ═══ About Teaser ═══ */}
-      <section className="section--tight">
+      <section className="section--tight lazy-section">
         <div
           className="container"
           style={{
@@ -434,7 +434,7 @@ const Home = () => {
       </section>
 
       {/* ═══ Events Preview ═══ */}
-      <section className="section">
+      <section className="section lazy-section">
         <div className="container">
           <ScrollReveal>
             <div style={{ textAlign: "center", marginBottom: 36 }}>

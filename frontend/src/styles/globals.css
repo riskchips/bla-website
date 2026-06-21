@@ -232,6 +232,11 @@ button {
   padding: 96px 0;
 }
 
+.lazy-section {
+  content-visibility: auto;
+  contain-intrinsic-size: 1000px;
+}
+
 .section--tight {
   padding: 64px 0;
 }

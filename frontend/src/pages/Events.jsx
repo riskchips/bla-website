@@ -246,6 +246,7 @@ const Events = () => {
                                       <img 
                                           src={ev.poster_image} 
                                           alt={`${ev.name} Poster`} 
+                                          loading="lazy"
                                           style={{
                                               width: "100%",
                                               height: "auto",
