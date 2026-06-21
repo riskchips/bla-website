@@ -91,7 +91,8 @@ app.use(
         assetsPath,
         {
             index: false,
-            extensions: false
+            extensions: false,
+            maxAge: "1d" // Added caching
         }
     )
 )
@@ -114,6 +115,7 @@ app.get("/api/terms", async (req, res) => {
             "utf8"
         )
 
+        res.set("Cache-Control", "public, max-age=86400") // Cache for 1 day
         res.json({
             success: true,
             terms: file
@@ -138,6 +140,7 @@ app.get("/api/privacy", async (req, res) => {
             "utf8"
         )
 
+        res.set("Cache-Control", "public, max-age=86400") // Cache for 1 day
         res.json({
             success: true,
             privacy: file
@@ -183,7 +186,7 @@ app.post("/upload-proxy", (req, res) => {
     req.pipe(proxyReq, { end: true });
 });
 
-app.use(express.static(frontendPath))
+app.use(express.static(frontendPath, { maxAge: "1d" })) // Added caching
 
 app.use((req, res) => {
     if (req.path.startsWith("/api")) {

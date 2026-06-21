@@ -120,7 +120,7 @@ const Footer = () => {
               }}
             >
               <img
-                src="/assets/logo_light.png"
+                src="/assets/logo_dark.png"
                 alt=""
                 loading="lazy"
                 style={{ width: 40, height: 40 }}
