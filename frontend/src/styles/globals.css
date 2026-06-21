@@ -889,56 +889,159 @@ button {
    ═══════════════════════════════════════════════════════════ */
 
 .notif {
-  border-left-color: var(--terracotta);
-  border-left-width: 4px;
+  background: 
+    /* Crease 1 */
+    linear-gradient(90deg, rgba(0,0,0,0) 28%, rgba(0,0,0,0.03) 30%, rgba(255,255,255,0.4) 31%, rgba(0,0,0,0) 33%),
+    /* Crease 2 */
+    linear-gradient(90deg, rgba(0,0,0,0) 68%, rgba(0,0,0,0.04) 70%, rgba(255,255,255,0.5) 71%, rgba(0,0,0,0) 73%),
+    /* Base paper */
+    var(--paper);
+  position: relative;
+  padding: 30px 20px 40px 20px;
+  /* Jagged torn edges at top and bottom */
+  clip-path: polygon(
+    0% 5px, 5% 0px, 10% 4px, 15% 1px, 20% 6px, 25% 0px, 30% 5px, 35% 2px, 40% 6px, 45% 0px, 50% 5px, 
+    55% 1px, 60% 7px, 65% 0px, 70% 4px, 75% 1px, 80% 6px, 85% 2px, 90% 5px, 95% 0px, 100% 6px,
+    100% calc(100% - 6px), 95% 100%, 90% calc(100% - 5px), 85% calc(100% - 2px), 80% calc(100% - 6px), 75% calc(100% - 1px), 70% calc(100% - 4px), 65% 100%, 60% calc(100% - 7px), 55% calc(100% - 1px), 
+    50% calc(100% - 5px), 45% 100%, 40% calc(100% - 6px), 35% calc(100% - 2px), 30% calc(100% - 5px), 25% 100%, 20% calc(100% - 6px), 15% calc(100% - 1px), 10% calc(100% - 4px), 5% 100%, 0% calc(100% - 5px)
+  );
+  filter: drop-shadow(0 6px 12px rgba(44, 24, 16, 0.15));
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* Add some randomness using nth-child on the wrapper */
+.grid > :nth-child(odd) .notif {
+  transform: rotate(-1.5deg);
+}
+
+.grid > :nth-child(even) .notif {
+  transform: rotate(2deg);
+}
+
+.grid > :nth-child(3n) .notif {
+  transform: rotate(-0.5deg);
+}
+
+/* Generic paper clip style */
+.grid > div {
+  position: relative;
+}
+.grid > div::after {
+  content: "";
+  position: absolute;
+  width: 25px;
+  height: 65px;
+  background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 20 60" xmlns="http://www.w3.org/2000/svg"><path d="M10,50 L10,12 C10,6 18,6 18,12 L18,48 C18,56 2,56 2,48 L2,16 C2,12 8,12 8,16 L8,42" fill="none" stroke="%238fa3b3" stroke-width="3" stroke-linecap="round"/></svg>');
+  background-size: contain;
+  background-repeat: no-repeat;
+  z-index: 20;
+  pointer-events: none;
+  filter: drop-shadow(1px 2px 2px rgba(0,0,0,0.25));
+}
+
+/* Variant 1: Top Left */
+.grid > :nth-child(4n+1)::after {
+  top: -20px;
+  left: 20%;
+  transform: rotate(15deg);
+}
+
+/* Variant 2: Right Center (horizontal) */
+.grid > :nth-child(4n+2)::after {
+  top: 40%;
+  right: -15px;
+  transform: rotate(105deg);
+}
+
+/* Variant 3: Bottom Right */
+.grid > :nth-child(4n+3)::after {
+  bottom: -20px;
+  right: 25%;
+  transform: rotate(190deg);
+}
+
+/* Variant 4: Top Right */
+.grid > :nth-child(4n)::after {
+  top: -15px;
+  right: 15%;
+  transform: rotate(-25deg);
+}
+
+.notif:hover {
+  transform: scale(1.03) rotate(0deg);
+  z-index: 10;
 }
 
 .notif h3 {
-  font-family: var(--font-en-display);
-  color: var(--maroon);
-  font-size: 1.4rem;
-  margin-bottom: 4px;
-  font-weight: 600;
+  font-family: 'Caveat', cursive, var(--font-bn-display);
+  color: var(--deep-red);
+  font-size: 2rem;
+  margin-bottom: 8px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 2px dashed rgba(184, 137, 58, 0.4);
+  padding-bottom: 8px;
+  line-height: 1.1;
 }
 
 .notif .date {
   font-family: var(--font-bn-body);
-  color: var(--ink-soft);
+  color: var(--maroon);
   font-size: 0.9rem;
-  margin-bottom: 12px;
+  margin-top: 12px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.notif .date::before {
+  content: "❧";
+  font-size: 1.2rem;
+  color: var(--terracotta);
 }
 
 .notif .body {
-  color: var(--ink-soft);
-  margin-bottom: 16px;
-  line-height: 1.7;
+  color: var(--ink);
+  margin-bottom: 24px;
+  line-height: 1.5;
+  font-size: 1.4rem;
+  font-family: 'Caveat', cursive, var(--font-en-body);
+  font-weight: 500;
 }
 
 .notif-buttons {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 12px;
 }
 
 .notif-buttons a {
-  display: inline-block;
-  padding: 8px 18px;
-  background: linear-gradient(180deg, var(--maroon-light) 0%, var(--maroon) 100%);
-  color: var(--bg);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 20px;
+  background: transparent;
+  color: var(--deep-red);
   font-family: var(--font-en-display);
-  font-size: 0.95rem;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  border-radius: 4px;
-  transition: all 0.3s var(--transition-smooth);
-  box-shadow: 0 2px 8px rgba(107, 29, 29, 0.2);
+  font-size: 1rem;
+  font-weight: 600;
+  border: 2px solid var(--deep-red);
+  transition: all 0.3s ease;
+  position: relative;
 }
 
+/* A hand-drawn style button hover */
 .notif-buttons a:hover {
-  background: linear-gradient(180deg, var(--terracotta) 0%, var(--terracotta-dark) 100%);
-  color: var(--bg);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(196, 83, 58, 0.3);
+  background: var(--deep-red);
+  color: var(--bg-cream);
+  border-radius: 4px 12px 4px 12px / 12px 4px 12px 4px;
 }
 
 /* ═══════════════════════════════════════════════════════════
