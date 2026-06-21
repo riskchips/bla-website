@@ -229,8 +229,6 @@ const Events = () => {
                               className="card event"
                               style={{
                                 transition: "transform 0.4s cubic-bezier(0.22,1,0.36,1), box-shadow 0.4s ease",
-                                display: "flex",
-                                flexDirection: "column"
                               }}
                             >
                               {/* Poster Image */}
@@ -239,11 +237,10 @@ const Events = () => {
                                       className="cursor-target"
                                       onClick={() => ev.gallery?.length > 0 ? setLightboxImages(ev.gallery) : null}
                                       style={{ 
-                                          margin: "-24px -24px 20px -24px", 
                                           overflow: "hidden", 
-                                          borderTopLeftRadius: "8px",
-                                          borderTopRightRadius: "8px",
-                                          cursor: ev.gallery?.length > 0 ? "pointer" : "default"
+                                          borderRadius: "8px",
+                                          cursor: ev.gallery?.length > 0 ? "pointer" : "default",
+                                          height: "100%"
                                       }}
                                   >
                                       <img 
@@ -251,8 +248,8 @@ const Events = () => {
                                           alt={`${ev.name} Poster`} 
                                           style={{
                                               width: "100%",
-                                              height: "250px",
-                                              objectFit: "cover",
+                                              height: "auto",
+                                              objectFit: "contain",
                                               display: "block",
                                               transition: "transform 0.5s ease"
                                           }}
@@ -266,25 +263,27 @@ const Events = () => {
                                   </div>
                               )}
 
-                              <div style={{ flex: 1 }}>
-                                <h3>{ev.name}</h3>
-                                <div className="when bn-body" style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                                  {formatDate(ev.timestamp)}
+                              <div style={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "space-between" }}>
+                                <div>
+                                  <h3>{ev.name}</h3>
+                                  <div className="when bn-body" style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                    {formatDate(ev.timestamp)}
+                                  </div>
+                                  <BengaliCalendarBadge date={formatDate(ev.timestamp)} />
+                                  <p className="desc" style={{ marginTop: "15px" }}>{ev.description}</p>
                                 </div>
-                                <BengaliCalendarBadge date={formatDate(ev.timestamp)} />
-                                <p className="desc" style={{ marginTop: "15px" }}>{ev.description}</p>
-                              </div>
 
-                              {/* Gallery Button */}
-                              {ev.gallery && ev.gallery.length > 0 && (
-                                <button 
-                                    className="btn ghost cursor-target" 
-                                    style={{ marginTop: "20px", width: "100%", justifyContent: "center" }}
-                                    onClick={() => setLightboxImages(ev.gallery)}
-                                >
-                                    View Gallery ({ev.gallery.length} Images)
-                                </button>
-                              )}
+                                {/* Gallery Button */}
+                                {ev.gallery && ev.gallery.length > 0 && (
+                                  <button 
+                                      className="btn ghost cursor-target" 
+                                      style={{ marginTop: "24px", width: "100%", justifyContent: "center" }}
+                                      onClick={() => setLightboxImages(ev.gallery)}
+                                  >
+                                      View Gallery ({ev.gallery.length} Images)
+                                  </button>
+                                )}
+                              </div>
                             </article>
                           </ScrollReveal>
                         ))}

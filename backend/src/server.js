@@ -56,7 +56,8 @@ app.use(
                 imgSrc: [
                     "'self'",
                     "data:",
-                    "https://s6.imgcdn.dev/"
+                    "https://s6.imgcdn.dev/",
+                    "https://image.arnabdev.space"
                 ]
             }
         }

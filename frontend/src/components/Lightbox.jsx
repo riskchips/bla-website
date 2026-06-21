@@ -42,9 +42,12 @@ const Lightbox = ({ src, images = [], initialIndex = 0, onClose }) => {
         className="cursor-target" 
         aria-label="Close"
         style={{
-            position: 'absolute', top: '20px', right: '30px',
-            background: 'none', border: 'none', color: 'white',
-            fontSize: '1.5rem', cursor: 'pointer'
+            position: 'absolute', top: '15px', right: '15px',
+            background: 'rgba(255, 255, 255, 0.1)', border: 'none', color: 'white',
+            fontSize: '1.8rem', cursor: 'pointer', zIndex: 10,
+            width: '44px', height: '44px', borderRadius: '50%',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            backdropFilter: 'blur(4px)'
         }}
       >
         ✕
@@ -55,10 +58,13 @@ const Lightbox = ({ src, images = [], initialIndex = 0, onClose }) => {
           className="cursor-target"
           onClick={(e) => { e.stopPropagation(); setCurrentIndex((prev) => (prev - 1 + images.length) % images.length); }}
           style={{
-              position: 'absolute', left: '30px', top: '50%', transform: 'translateY(-50%)',
+              position: 'absolute', left: 'max(10px, 3vw)', top: '50%', transform: 'translateY(-50%)',
               background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white',
-              fontSize: '2rem', padding: '10px 20px', cursor: 'pointer', borderRadius: '5px'
+              fontSize: '2rem', padding: '0', cursor: 'pointer', borderRadius: '50%',
+              width: '48px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              backdropFilter: 'blur(4px)', zIndex: 10
           }}
+          aria-label="Previous image"
         >
           ‹
         </button>
@@ -80,10 +86,13 @@ const Lightbox = ({ src, images = [], initialIndex = 0, onClose }) => {
           className="cursor-target"
           onClick={(e) => { e.stopPropagation(); setCurrentIndex((prev) => (prev + 1) % images.length); }}
           style={{
-              position: 'absolute', right: '30px', top: '50%', transform: 'translateY(-50%)',
+              position: 'absolute', right: 'max(10px, 3vw)', top: '50%', transform: 'translateY(-50%)',
               background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white',
-              fontSize: '2rem', padding: '10px 20px', cursor: 'pointer', borderRadius: '5px'
+              fontSize: '2rem', padding: '0', cursor: 'pointer', borderRadius: '50%',
+              width: '48px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              backdropFilter: 'blur(4px)', zIndex: 10
           }}
+          aria-label="Next image"
         >
           ›
         </button>
