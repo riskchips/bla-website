@@ -309,7 +309,13 @@ const Home = () => {
       </div>
 
       {/* ═══ Bengali Word of the Day ═══ */}
-      <section className="section--tight">
+      <section className="section--tight" style={{ position: "relative" }}>
+        <img src="/assets/design.png" alt="" className="deco-design-motif" />
+        {/* Flower Cluster */}
+        <img src="/assets/flower.png" alt="" className="deco-flower" style={{ top: "-30px", right: "20px", width: "140px", animationDelay: "0s" }} />
+        <img src="/assets/flower2.png" alt="" className="deco-flower" style={{ top: "80px", right: "-30px", width: "90px", transform: "rotate(45deg)", opacity: 0.5, animationDelay: "1.5s" }} />
+        <img src="/assets/flower.png" alt="" className="deco-flower" style={{ top: "150px", right: "40px", width: "60px", transform: "rotate(-60deg)", opacity: 0.3, animationDelay: "3s" }} />
+        <img src="/assets/flower2.png" alt="" className="deco-flower" style={{ top: "-10px", left: "10px", right: "auto", width: "110px", transform: "rotate(120deg)", opacity: 0.6, animationDelay: "0.5s" }} />
         <div className="container">
           <ScrollReveal>
             <div className="word-of-day-card">
@@ -398,6 +404,9 @@ const Home = () => {
             position: "relative",
           }}
         >
+          {/* Decorative Images */}
+          <img src="/assets/bengali_food.png" alt="" className="deco-food" />
+          <img src="/assets/rosogolla.png" alt="" className="deco-rosogolla" />
           {/* Decorative Bengali chars */}
           <span
             className="about-deco-char"
@@ -462,7 +471,7 @@ const Home = () => {
             <div className="grid grid-3">
               {events.slice(0, 3).map((ev, i) => (
                 <ScrollReveal key={i} delay={i * 0.15}>
-                  <article className="card tilt-card">
+                  <article className="card tilt-card" style={{ zIndex: 1 }}>
                     {ev.gallery?.[0] && (
                       <img
                         src={ev.gallery[0]}

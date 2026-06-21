@@ -148,6 +148,12 @@ const Grievance = () => {
   return (
     <PageTransition>
       <section className="page" style={{ position: "relative", overflow: "hidden" }}>
+        {/* Added Decorative Images */}
+        {/* Flower Cluster */}
+        <img src="/assets/flower.png" alt="" className="deco-flower" style={{ top: "5%", left: "auto", right: "-10px", opacity: 0.6, animationDelay: "0s" }} />
+        <img src="/assets/flower2.png" alt="" className="deco-flower" style={{ top: "15%", left: "auto", right: "40px", width: "90px", transform: "rotate(-45deg)", opacity: 0.4, animationDelay: "1.5s" }} />
+        <img src="/assets/flower.png" alt="" className="deco-flower" style={{ top: "25%", left: "auto", right: "-20px", width: "70px", transform: "rotate(30deg)", opacity: 0.5, animationDelay: "2s" }} />
+        <img src="/assets/design.png" alt="" className="deco-design-motif" style={{ bottom: "5%", left: "50%", opacity: 0.15 }} />
         <div className="container" style={{ maxWidth: 720, position: "relative", zIndex: 1 }}>
           {/* ── Page Header ── */}
           <ScrollReveal>

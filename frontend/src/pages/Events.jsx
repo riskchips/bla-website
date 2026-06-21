@@ -161,6 +161,13 @@ const Events = () => {
   return (
     <PageTransition>
       <section className="page" style={{ position: "relative", overflow: "hidden" }}>
+        {/* Added Decorative Images */}
+        {/* Flower Cluster */}
+        <img src="/assets/flower.png" alt="" className="deco-flower" style={{ top: "10%", left: "-10px", right: "auto", opacity: 0.6, animationDelay: "0s" }} />
+        <img src="/assets/flower2.png" alt="" className="deco-flower" style={{ top: "15%", left: "40px", right: "auto", width: "80px", transform: "rotate(60deg)", opacity: 0.4, animationDelay: "1s" }} />
+        <img src="/assets/flower.png" alt="" className="deco-flower" style={{ top: "22%", left: "-30px", right: "auto", width: "60px", transform: "rotate(-20deg)", opacity: 0.5, animationDelay: "2.5s" }} />
+        <img src="/assets/bengali_food.png" alt="" className="deco-food" style={{ top: "40%", left: "auto", right: "-120px", transform: "rotate(-25deg)", opacity: 0.15 }} />
+        <img src="/assets/rosogolla.png" alt="" className="deco-rosogolla" style={{ bottom: "5%", left: "-80px", right: "auto", opacity: 0.5 }} />
         <FloatingBanner />
 
         <div className="container" style={{ position: "relative", zIndex: 1 }}>

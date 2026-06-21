@@ -127,6 +127,14 @@ const About = () => {
       `}</style>
 
       <section className="page" style={{ position: "relative" }}>
+        {/* Added Decorative Images */}
+        {/* Flower Cluster */}
+        <img src="/assets/flower.png" alt="" className="deco-flower" style={{ top: "5%", left: "-10px", right: "auto", animationDelay: "1s" }} />
+        <img src="/assets/flower2.png" alt="" className="deco-flower" style={{ top: "12%", left: "40px", right: "auto", width: "80px", transform: "rotate(40deg)", opacity: 0.5, animationDelay: "2.5s" }} />
+        <img src="/assets/flower.png" alt="" className="deco-flower" style={{ top: "20%", left: "-30px", right: "auto", width: "110px", transform: "rotate(-30deg)", opacity: 0.7, animationDelay: "0.5s" }} />
+        <img src="/assets/flower2.png" alt="" className="deco-flower" style={{ top: "35%", left: "20px", right: "auto", width: "60px", transform: "rotate(80deg)", opacity: 0.4, animationDelay: "3.2s" }} />
+        <img src="/assets/design.png" alt="" className="deco-design-motif" style={{ top: "30%", bottom: "auto", left: "90%", opacity: 0.1 }} />
+        <img src="/assets/bengali_food.png" alt="" className="deco-food" style={{ bottom: "5%", left: "auto", right: "-80px", top: "auto", transform: "rotate(-15deg)", opacity: 0.2 }} />
         {/* Background decorative Bengali characters */}
         <span className="about-deco" style={{ top: 80, left: 30, fontSize: "8rem" }} aria-hidden="true">
           ব

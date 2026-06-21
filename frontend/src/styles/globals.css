@@ -531,7 +531,75 @@ button {
   display: inline;
   font-size: 0.95rem;
 }
-.glass-nav__brand-en--short {
+
+/* ─── Decorative Floating Images ───────────────────────── */
+
+.deco-food {
+  position: absolute;
+  left: -200px;
+  top: -80px;
+  width: 250px;
+  opacity: 0.85;
+  transform: rotate(15deg);
+  pointer-events: none;
+  z-index: 0;
+  transition: transform 0.8s ease;
+}
+@media (max-width: 860px) {
+  .deco-food { width: 140px; left: -50px; top: -30px; opacity: 0.6; }
+}
+
+.deco-flower {
+  position: absolute;
+  right: 20px;
+  top: -30px;
+  width: 140px;
+  opacity: 0.8;
+  transform: rotate(-10deg);
+  pointer-events: none;
+  z-index: 2;
+  animation: floatFlower 6s ease-in-out infinite;
+}
+@media (max-width: 860px) {
+  .deco-flower { transform: scale(0.6); transform-origin: center; animation: floatFlowerMobile 6s ease-in-out infinite; }
+}
+@keyframes floatFlower {
+  0%, 100% { transform: translateY(0) rotate(-10deg); }
+  50% { transform: translateY(-15px) rotate(-5deg); }
+}
+@keyframes floatFlowerMobile {
+  0%, 100% { transform: translateY(0) rotate(-10deg) scale(0.6); }
+  50% { transform: translateY(-10px) rotate(-5deg) scale(0.6); }
+}
+
+.deco-rosogolla {
+  position: absolute;
+  right: -150px;
+  bottom: -40px;
+  width: 180px;
+  opacity: 0.9;
+  transform: rotate(-15deg);
+  pointer-events: none;
+  z-index: 2;
+  transition: transform 0.4s ease;
+}
+.card:hover .deco-rosogolla {
+  transform: translateY(-10px) rotate(-5deg);
+}
+@media (max-width: 860px) {
+  .deco-rosogolla { width: 120px; right: -50px; bottom: -10px; opacity: 0.6; }
+}
+
+.deco-design-motif {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
+  width: 100px;
+  opacity: 0.08;
+  pointer-events: none;
+  z-index: 0;
+}.glass-nav__brand-en--short {
   display: none;
 }
 @media (max-width: 860px) {

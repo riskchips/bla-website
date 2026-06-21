@@ -130,7 +130,14 @@ const Contact = () => {
 
   return (
     <PageTransition>
-      <section className="page" style={{ position: "relative", overflow: "hidden" }}>
+      <section className="page" style={{ position: "relative" }}>
+        {/* Added Decorative Images */}
+        {/* Flower Cluster */}
+        <img src="/assets/flower.png" alt="" className="deco-flower" style={{ top: "15%", left: "-20px", right: "auto", opacity: 0.6, animationDelay: "0s" }} />
+        <img src="/assets/flower2.png" alt="" className="deco-flower" style={{ top: "25%", left: "30px", right: "auto", width: "80px", transform: "rotate(45deg)", opacity: 0.4, animationDelay: "1.5s" }} />
+        <img src="/assets/flower.png" alt="" className="deco-flower" style={{ top: "10%", left: "50px", right: "auto", width: "60px", transform: "rotate(-30deg)", opacity: 0.5, animationDelay: "2s" }} />
+        <img src="/assets/rosogolla.png" alt="" className="deco-rosogolla" style={{ bottom: "10%", left: "-80px", right: "auto", opacity: 0.5 }} />
+        <img src="/assets/design.png" alt="" className="deco-design-motif" style={{ bottom: "5%", left: "90%", opacity: 0.15 }} />
         <div className="container" style={{ maxWidth: 720, position: "relative", zIndex: 1 }}>
           {/* ── Page Header ── */}
           <ScrollReveal>
