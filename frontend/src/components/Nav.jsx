@@ -16,6 +16,7 @@ const links = [
 const Nav = () => {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [pastHero, setPastHero] = useState(false);
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const location = useLocation();
 
@@ -24,10 +25,12 @@ const Nav = () => {
     setOpen(false);
   }, [location.pathname]);
 
-  // scrolled = past hero dark section → switch to maroon/dark text
+  // scrolled = shrink navbar
+  // pastHero = switch from cream text to dark text
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 120);
+      setPastHero(window.scrollY > Math.max(window.innerHeight * 0.8, 400));
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll();
@@ -36,7 +39,7 @@ const Nav = () => {
 
   // When on home page at top → dark bg behind nav → use cream text
   const isHome = location.pathname === "/";
-  const onDarkBg = isHome && !scrolled;
+  const onDarkBg = isHome && !pastHero;
 
   return (
     <header
@@ -46,18 +49,18 @@ const Nav = () => {
       <GlassSurface
         width="100%"
         height="auto"
-        borderRadius={scrolled ? 28 : 50}
-        borderWidth={0.07}
-        brightness={50}
-        opacity={0.93}
-        blur={11}
-        displace={0.5}
+        borderRadius={32}
+        borderWidth={0.2}
+        brightness={61}
+        opacity={1}
+        blur={30}
+        displace={0.8}
         backgroundOpacity={0.1}
-        saturation={1}
-        distortionScale={-180}
-        redOffset={0}
-        greenOffset={10}
-        blueOffset={20}
+        saturation={3}
+        distortionScale={90}
+        redOffset={36}
+        greenOffset={23}
+        blueOffset={30}
         className="glass-nav__surface"
       >
         <div className="glass-nav__inner">
@@ -67,11 +70,18 @@ const Nav = () => {
             className="glass-nav__brand cursor-target"
             onClick={() => setOpen(false)}
           >
-            <img
-              src="/assets/logo.png"
-              alt="BLA logo"
-              className="glass-nav__logo"
-            />
+            <div className="glass-nav__logo-wrapper">
+              <img
+                src="/assets/logo_light.png"
+                alt="BLA logo light"
+                className="glass-nav__logo glass-nav__logo--light"
+              />
+              <img
+                src="/assets/logo_dark.png"
+                alt="BLA logo dark"
+                className="glass-nav__logo glass-nav__logo--dark"
+              />
+            </div>
             <div className="glass-nav__brand-text">
               <span className="glass-nav__brand-en glass-nav__brand-en--full">
                 Bengali Literary Association

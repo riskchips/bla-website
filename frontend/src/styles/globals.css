@@ -43,6 +43,7 @@ html,
 body {
   margin: 0;
   padding: 0;
+  overflow-x: hidden;
   background: var(--bg);
   color: var(--ink);
   font-family: var(--font-en-body);
@@ -466,6 +467,8 @@ button {
 .glass-nav--dark-bg .glass-nav__link-hover { background: rgba(238, 238, 208, 0.12); }
 .glass-nav--dark-bg .glass-nav__toggle { border-color: var(--bg); color: var(--bg); }
 .glass-nav--dark-bg .glass-nav__toggle:hover { background: var(--bg); color: var(--maroon); }
+.glass-nav--dark-bg .glass-nav__logo--dark { opacity: 0; }
+.glass-nav--dark-bg .glass-nav__logo--light { opacity: 1; }
 
 /* Light bg (scrolled / other pages) → maroon/dark text */
 .glass-nav--light-bg .glass-nav__brand-en { color: var(--maroon); }
@@ -477,6 +480,8 @@ button {
 .glass-nav--light-bg .glass-nav__link-hover { background: rgba(184, 137, 58, 0.12); }
 .glass-nav--light-bg .glass-nav__toggle { border-color: var(--maroon); color: var(--maroon); }
 .glass-nav--light-bg .glass-nav__toggle:hover { background: var(--maroon); color: var(--bg); }
+.glass-nav--light-bg .glass-nav__logo--light { opacity: 0; }
+.glass-nav--light-bg .glass-nav__logo--dark { opacity: 1; }
 
 /* ── Brand ── */
 .glass-nav__brand {
@@ -487,12 +492,21 @@ button {
   flex-shrink: 0;
 }
 
-.glass-nav__logo {
+.glass-nav__logo-wrapper {
+  position: relative;
   width: 42px;
   height: 42px;
+}
+
+.glass-nav__logo {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   border-radius: 50%;
   object-fit: contain;
-  transition: transform 0.3s ease;
+  transition: opacity 0.45s ease, transform 0.3s ease;
 }
 
 .glass-nav__brand:hover .glass-nav__logo {
