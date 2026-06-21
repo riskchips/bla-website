@@ -526,17 +526,18 @@ button {
   transition: color 0.35s ease;
 }
 
-/* Full name on desktop, BLA on mobile */
+/* Full name on all devices, adjusted for mobile */
 .glass-nav__brand-en--full {
   display: inline;
   font-size: 0.95rem;
 }
-
 .glass-nav__brand-en--short {
   display: none;
-  font-size: 1.2rem;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+}
+@media (max-width: 860px) {
+  .glass-nav__brand-en--full {
+    font-size: 0.75rem;
+  }
 }
 
 .glass-nav__brand-bn {
@@ -637,13 +638,9 @@ button {
     padding: 8px 14px;
   }
 
-  /* Show short name, hide full name on mobile */
+  /* Show full name on mobile but keep it compact */
   .glass-nav__brand-en--full {
-    display: none;
-  }
-
-  .glass-nav__brand-en--short {
-    display: inline;
+    font-size: 0.85rem;
   }
 
   .glass-nav__brand-bn {
@@ -806,7 +803,7 @@ button {
    ═══════════════════════════════════════════════════════════ */
 
 .page {
-  padding: 64px 0;
+  padding: 140px 0 64px;
   min-height: 60vh;
 }
 
