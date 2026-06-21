@@ -41,7 +41,7 @@ const App = () => {
   const isAdmin = location.pathname.startsWith(ADMIN_ROOT);
 
   return (
-    <ReactLenis root options={{ lerp: 0.1, duration: 1.5, smoothTouch: false }}>
+    <ReactLenis root options={{ lerp: 0.1, duration: 1.5, smoothTouch: true }}>
       <FloatingParticles count={18} />
       <EasterEggs />
       <DecorativeAlpana />
