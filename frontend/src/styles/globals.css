@@ -411,146 +411,278 @@ button {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   Navigation
+   Navigation — GlassSurface Pill
    ═══════════════════════════════════════════════════════════ */
 
-.nav {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  background: rgba(238, 238, 208, 0.85);
-  backdrop-filter: saturate(160%) blur(12px);
-  -webkit-backdrop-filter: saturate(160%) blur(12px);
-  border-bottom: 1px solid var(--line);
-  box-shadow: 0 1px 8px rgba(44, 24, 16, 0.05);
-  transition: box-shadow 0.3s ease;
+.glass-nav {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 94%;
+  max-width: 1200px;
+  z-index: 100;
+  border-radius: 50px;
+  transition: all 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
 }
 
-.nav-inner {
+.glass-nav--scrolled {
+  top: 10px;
+  width: 96%;
+  max-width: 1260px;
+  border-radius: 28px;
+}
+
+/* GlassSurface wrapper */
+.glass-nav__surface {
+  border-radius: inherit !important;
+}
+
+/* Inner flex container */
+.glass-nav__inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 24px;
-  max-width: var(--max-w);
-  margin: 0 auto;
+  padding: 6px 16px 6px 20px;
+  width: 100%;
+  gap: 16px;
 }
 
-.nav-brand {
+/* ══ Color modes ══ */
+
+/* Dark bg (on hero) → cream/light text */
+.glass-nav--dark-bg .glass-nav__brand-en { color: var(--bg); }
+.glass-nav--dark-bg .glass-nav__brand-bn { color: var(--gold-soft); }
+.glass-nav--dark-bg .glass-nav__link { color: var(--bg); }
+.glass-nav--dark-bg .glass-nav__link:hover { color: var(--gold-soft); }
+.glass-nav--dark-bg .glass-nav__link--active .glass-nav__link-label { color: var(--maroon); }
+.glass-nav--dark-bg .glass-nav__link-active { background: var(--bg); box-shadow: 0 2px 12px rgba(238, 238, 208, 0.3); }
+.glass-nav--dark-bg .glass-nav__link-hover { background: rgba(238, 238, 208, 0.12); }
+.glass-nav--dark-bg .glass-nav__toggle { border-color: var(--bg); color: var(--bg); }
+.glass-nav--dark-bg .glass-nav__toggle:hover { background: var(--bg); color: var(--maroon); }
+
+/* Light bg (scrolled / other pages) → maroon/dark text */
+.glass-nav--light-bg .glass-nav__brand-en { color: var(--maroon); }
+.glass-nav--light-bg .glass-nav__brand-bn { color: var(--ink-soft); }
+.glass-nav--light-bg .glass-nav__link { color: var(--ink); }
+.glass-nav--light-bg .glass-nav__link:hover { color: var(--maroon); }
+.glass-nav--light-bg .glass-nav__link--active .glass-nav__link-label { color: var(--bg); }
+.glass-nav--light-bg .glass-nav__link-active { background: var(--maroon); box-shadow: 0 2px 12px rgba(107, 29, 29, 0.3); }
+.glass-nav--light-bg .glass-nav__link-hover { background: rgba(184, 137, 58, 0.12); }
+.glass-nav--light-bg .glass-nav__toggle { border-color: var(--maroon); color: var(--maroon); }
+.glass-nav--light-bg .glass-nav__toggle:hover { background: var(--maroon); color: var(--bg); }
+
+/* ── Brand ── */
+.glass-nav__brand {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  text-decoration: none;
+  flex-shrink: 0;
 }
 
-.nav-brand img {
-  width: 44px;
-  height: 44px;
+.glass-nav__logo {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
   object-fit: contain;
   transition: transform 0.3s ease;
 }
 
-.nav-brand:hover img {
-  transform: scale(1.05);
+.glass-nav__brand:hover .glass-nav__logo {
+  transform: scale(1.06) rotate(4deg);
 }
 
-.nav-brand-text {
+.glass-nav__brand-text {
   display: flex;
   flex-direction: column;
   line-height: 1.1;
 }
 
-.nav-brand-text .en {
-  font-family: var(--font-en-display);
-  font-weight: 700;
-  font-size: 1.05rem;
-  color: var(--maroon);
+.glass-nav__brand-en {
+  font-family: 'Playfair Display', serif;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  transition: color 0.35s ease;
+}
+
+/* Full name on desktop, BLA on mobile */
+.glass-nav__brand-en--full {
+  display: inline;
+  font-size: 0.95rem;
+}
+
+.glass-nav__brand-en--short {
+  display: none;
+  font-size: 1.2rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.glass-nav__brand-bn {
+  font-family: 'Noto Serif Bengali', serif;
+  font-weight: 600;
+  font-size: 0.72rem;
   letter-spacing: 0.02em;
+  transition: color 0.35s ease;
 }
 
-.nav-brand-text .bn {
-  font-family: var(--font-bn-display);
-  font-size: 0.85rem;
-  color: var(--ink-soft);
-}
-
-.nav-links {
+/* ── Desktop Links ── */
+.glass-nav__links {
   display: flex;
-  gap: 32px;
   align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
 }
 
-.nav-links a {
-  font-family: var(--font-en-display);
-  font-size: 1.05rem;
-  font-weight: 500;
-  color: var(--ink);
+.glass-nav__link {
   position: relative;
-  padding: 6px 0;
-  transition: color 0.3s ease;
+  padding: 8px 13px;
+  text-decoration: none;
+  font-family: 'Playfair Display', serif;
+  font-size: 0.88rem;
+  font-weight: 600;
+  border-radius: 30px;
+  transition: color 0.25s ease;
+  -webkit-tap-highlight-color: transparent;
+  white-space: nowrap;
 }
 
-.nav-links a::after {
-  content: "";
+/* Hover pill bg */
+.glass-nav__link-hover {
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -4px;
-  height: 2px;
-  background: linear-gradient(90deg, var(--gold), var(--gold-soft));
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.4s var(--transition-smooth);
+  inset: 0;
+  border-radius: 30px;
+  z-index: 0;
+  transition: background 0.25s ease;
 }
 
-.nav-links a.active,
-.nav-links a:hover {
-  color: var(--maroon);
+/* Active pill bg */
+.glass-nav__link-active {
+  position: absolute;
+  inset: 0;
+  border-radius: 30px;
+  z-index: 0;
+  transition: background 0.25s ease;
 }
 
-.nav-links a.active::after,
-.nav-links a:hover::after {
-  transform: scaleX(1);
+.glass-nav__link-label {
+  position: relative;
+  z-index: 1;
+  transition: color 0.25s ease;
 }
 
-.nav-toggle {
+.glass-nav__link--active .glass-nav__link-label {
+  font-weight: 700;
+}
+
+/* ── Hamburger Toggle ── */
+.glass-nav__toggle {
   display: none;
   background: none;
-  border: 1.5px solid var(--ink);
-  padding: 7px 11px;
-  border-radius: 4px;
-  color: var(--ink);
-  font-size: 1.1rem;
-  transition: all 0.3s ease;
+  border: 2px solid;
+  font-size: 1.3rem;
+  cursor: pointer;
+  padding: 5px 10px;
+  border-radius: 12px;
+  transition: all 0.25s ease;
+  line-height: 1;
+  flex-shrink: 0;
 }
 
-.nav-toggle:hover {
-  border-color: var(--maroon);
-  color: var(--maroon);
+/* ── Mobile Dropdown ── */
+.glass-nav__mobile {
+  display: none;
+  overflow: hidden;
 }
 
-@media (max-width: 820px) {
-  .nav-links {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    flex-direction: column;
-    background: rgba(238, 238, 208, 0.97);
-    backdrop-filter: saturate(160%) blur(16px);
-    -webkit-backdrop-filter: saturate(160%) blur(16px);
-    border-bottom: 1px solid var(--line);
-    padding: 20px 24px;
-    gap: 14px;
+/* ── Responsive ── */
+@media (max-width: 860px) {
+  .glass-nav {
+    border-radius: 22px;
+    top: 10px;
+    width: 94%;
+  }
+
+  .glass-nav--scrolled {
+    top: 6px;
+    border-radius: 22px;
+  }
+
+  .glass-nav__surface {
+    border-radius: 22px !important;
+  }
+
+  .glass-nav__inner {
+    padding: 8px 14px;
+  }
+
+  /* Show short name, hide full name on mobile */
+  .glass-nav__brand-en--full {
     display: none;
-    box-shadow: 0 8px 24px rgba(44, 24, 16, 0.08);
   }
 
-  .nav-links.open {
+  .glass-nav__brand-en--short {
+    display: inline;
+  }
+
+  .glass-nav__brand-bn {
+    font-size: 0.62rem;
+  }
+
+  .glass-nav__logo {
+    width: 36px;
+    height: 36px;
+  }
+
+  .glass-nav__links {
+    display: none;
+  }
+
+  .glass-nav__toggle {
     display: flex;
-    animation: fade-in-up 0.3s ease both;
+    align-items: center;
+    justify-content: center;
   }
 
-  .nav-toggle {
-    display: inline-block;
+  .glass-nav__mobile {
+    display: flex;
+    flex-direction: column;
+    padding: 4px 14px 14px;
+    gap: 2px;
+    background: var(--bg);
+    border-top: 1px solid var(--line);
+  }
+
+  .glass-nav__mobile-link {
+    display: block;
+    text-decoration: none;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--ink);
+    padding: 14px 18px;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+    letter-spacing: 0.01em;
+  }
+
+  .glass-nav__mobile-link:hover,
+  .glass-nav__mobile-link:active {
+    background: rgba(184, 137, 58, 0.1);
+    color: var(--maroon);
+  }
+
+  .glass-nav__mobile-link--active {
+    background: var(--maroon);
+    color: var(--bg);
+    font-weight: 700;
+  }
+
+  .glass-nav__mobile-link--active:hover {
+    background: var(--maroon);
+    color: var(--bg);
   }
 }
 
@@ -897,7 +1029,7 @@ button {
   position: relative;
   background: linear-gradient(135deg, var(--maroon) 0%, var(--deep-red) 50%, #4A1515 100%);
   color: var(--bg);
-  padding: 80px 0 96px;
+  padding: 160px 0 96px;
   overflow: hidden;
 }
 
