@@ -59,6 +59,10 @@ const Dashboard = () => {
 
   const [dragOverCatId, setDragOverCatId] = useState(null);
 
+  // Modal State
+  const [selectedMessage, setSelectedMessage] = useState(null);
+  const [messageType, setMessageType] = useState(null);
+
   const token = localStorage.getItem(ADMIN_KEY);
 
   const logout = () => {
@@ -572,7 +576,10 @@ const Dashboard = () => {
                       <strong>{c.name}</strong> ({c.email || "No Email"} | {c.phone || "No Phone"})
                       <p style={{ margin: "5px 0 0", fontSize: "0.9rem" }}>{c.details}</p>
                       <small style={{ color: "var(--ink-soft)" }}>{new Date(c.unix_timestamp).toLocaleString()}</small>
-                      <button onClick={() => deleteContact(c.id)} className="btn cursor-target" style={{ position: "absolute", top: "10px", right: "10px", background: "var(--deep-red)", padding: "4px 8px", fontSize: "0.8rem" }}>Delete</button>
+                      <div style={{ position: "absolute", top: "10px", right: "10px", display: "flex", gap: "5px" }}>
+                        <button onClick={() => { setSelectedMessage(c); setMessageType("contact"); }} className="btn ghost cursor-target" style={{ padding: "4px 8px", fontSize: "0.8rem", border: "1px solid #ddd" }}>View</button>
+                        <button onClick={() => deleteContact(c.id)} className="btn cursor-target" style={{ background: "var(--deep-red)", padding: "4px 8px", fontSize: "0.8rem", color: "white" }}>Delete</button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -590,7 +597,10 @@ const Dashboard = () => {
                       <strong>{g.name}</strong> - {g.subject} ({g.category})
                       <p style={{ margin: "5px 0 0", fontSize: "0.9rem" }}>{g.details}</p>
                       <small style={{ color: "var(--ink-soft)" }}>{g.email} | {g.phone} | {new Date(g.created_at).toLocaleString()}</small>
-                      <button onClick={() => deleteHelp(g.id)} className="btn cursor-target" style={{ position: "absolute", top: "10px", right: "10px", background: "var(--deep-red)", padding: "4px 8px", fontSize: "0.8rem" }}>Delete</button>
+                      <div style={{ position: "absolute", top: "10px", right: "10px", display: "flex", gap: "5px" }}>
+                        <button onClick={() => { setSelectedMessage(g); setMessageType("help"); }} className="btn ghost cursor-target" style={{ padding: "4px 8px", fontSize: "0.8rem", border: "1px solid #ddd" }}>View</button>
+                        <button onClick={() => deleteHelp(g.id)} className="btn cursor-target" style={{ background: "var(--deep-red)", padding: "4px 8px", fontSize: "0.8rem", color: "white" }}>Delete</button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -917,6 +927,68 @@ const Dashboard = () => {
           )}
         </div>
       </div>
+
+      {/* Message Modal Overlay */}
+      {selectedMessage && (
+        <div style={{
+          position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+          background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)",
+          display: "flex", justifyContent: "center", alignItems: "center",
+          zIndex: 99999, padding: "20px"
+        }}>
+          <div className="card" style={{
+            background: "var(--paper)", width: "100%", maxWidth: "600px",
+            maxHeight: "90vh", overflowY: "auto", padding: "30px",
+            borderRadius: "12px", position: "relative",
+            boxShadow: "0 10px 40px rgba(0,0,0,0.2)"
+          }}>
+            <button 
+              onClick={() => setSelectedMessage(null)} 
+              className="cursor-target"
+              style={{
+                position: "absolute", top: "20px", right: "20px",
+                background: "transparent", border: "none", fontSize: "1.8rem",
+                color: "var(--ink)", cursor: "pointer", padding: "5px",
+                lineHeight: "1"
+              }}
+            >
+              &times;
+            </button>
+            <h2 style={{ fontFamily: "var(--font-en-display)", color: "var(--deep-red)", marginTop: 0, paddingRight: "40px" }}>
+              {messageType === "contact" ? "Contact Message" : "Help Request"}
+            </h2>
+            
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginTop: "20px" }}>
+              <div><strong>Name:</strong> {selectedMessage.name}</div>
+              <div><strong>Email:</strong> {selectedMessage.email || "N/A"}</div>
+              <div><strong>Phone:</strong> {selectedMessage.phone || "N/A"}</div>
+              {messageType === "help" && (
+                <>
+                  <div><strong>Category:</strong> {selectedMessage.category}</div>
+                  <div><strong>Subject:</strong> {selectedMessage.subject}</div>
+                </>
+              )}
+              <div><strong>Date:</strong> {new Date(selectedMessage.unix_timestamp || selectedMessage.created_at).toLocaleString()}</div>
+              <div style={{ marginTop: "10px" }}>
+                <strong>Message:</strong>
+                <div style={{ 
+                  background: "var(--bg)", padding: "15px", borderRadius: "8px", 
+                  marginTop: "8px", whiteSpace: "pre-wrap", lineHeight: "1.6",
+                  border: "1px solid var(--line)"
+                }}>
+                  {selectedMessage.details}
+                </div>
+              </div>
+            </div>
+            
+            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "30px" }}>
+              <button onClick={() => setSelectedMessage(null)} className="btn cursor-target">
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 };
