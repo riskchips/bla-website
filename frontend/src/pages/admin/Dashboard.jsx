@@ -28,7 +28,7 @@ const Dashboard = () => {
   const [categoryName, setCategoryName] = useState("");
   const [categorySortOrder, setCategorySortOrder] = useState("0");
   const [categoryStatus, setCategoryStatus] = useState(null);
-  const [draggedCatId, setDraggedCatId] = useState(null);
+  const [unsavedCategoryOrder, setUnsavedCategoryOrder] = useState(false);
   const [isUpdatingOrder, setIsUpdatingOrder] = useState(false);
 
   // Event form state
@@ -49,15 +49,14 @@ const Dashboard = () => {
   const [teamImage, setTeamImage] = useState("");
   const [teamBoardYear, setTeamBoardYear] = useState("2026-27");
   const [teamStatus, setTeamStatus] = useState(null);
-  const [draggedTeamId, setDraggedTeamId] = useState(null);
-  const [dragOverTeamId, setDragOverTeamId] = useState(null);
+  const [unsavedTeamYears, setUnsavedTeamYears] = useState({});
   const [isUpdatingTeamOrder, setIsUpdatingTeamOrder] = useState(false);
 
   // About form state
   const [aboutContent, setAboutContent] = useState("");
   const [aboutStatus, setAboutStatus] = useState(null);
 
-  const [dragOverCatId, setDragOverCatId] = useState(null);
+
 
   // Modal State
   const [selectedMessage, setSelectedMessage] = useState(null);
@@ -193,102 +192,73 @@ const Dashboard = () => {
     } catch (e) { console.error(e); }
   };
 
-  const handleCategoryDragStart = (e, id) => {
-    setDraggedCatId(id);
-    e.dataTransfer.effectAllowed = "move";
-  };
-
-  const handleCategoryDragOver = (e, id) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
-    setDragOverCatId(id);
-  };
-
-  const handleCategoryDrop = async (e, targetId) => {
-    e.preventDefault();
-    setDragOverCatId(null);
-    if (!draggedCatId || draggedCatId === targetId) return;
-
-    const oldIndex = categories.findIndex(c => c.id === draggedCatId);
-    const newIndex = categories.findIndex(c => c.id === targetId);
-
-    if (oldIndex === -1 || newIndex === -1) return;
-
+  const moveCategory = (index, direction) => {
+    if ((direction === -1 && index === 0) || (direction === 1 && index === categories.length - 1)) return;
     const newCats = [...categories];
-    const [movedCat] = newCats.splice(oldIndex, 1);
-    newCats.splice(newIndex, 0, movedCat);
-
+    const temp = newCats[index];
+    newCats[index] = newCats[index + direction];
+    newCats[index + direction] = temp;
+    
     const updatedCats = newCats.map((c, i) => ({ ...c, sort_order: i }));
     setCategories(updatedCats);
-    setIsUpdatingOrder(true);
+    setUnsavedCategoryOrder(true);
+  };
 
+  const saveCategoryOrder = async () => {
+    setIsUpdatingOrder(true);
     try {
       const res = await fetch("/api/update/categories/order", {
         method: "PUT",
         headers: { "Content-Type": "application/json", "Authorization": token },
-        body: JSON.stringify({ orders: updatedCats.map(c => ({ id: c.id, sort_order: c.sort_order })) })
+        body: JSON.stringify({ orders: categories.map(c => ({ id: c.id, sort_order: c.sort_order })) })
       });
       handleApiError(res);
+      setUnsavedCategoryOrder(false);
       fetchCategories();
     } catch (err) {
       console.error(err);
     }
     setIsUpdatingOrder(false);
-    setDraggedCatId(null);
   };
 
-  const handleTeamDragStart = (e, id) => {
-    setDraggedTeamId(id);
-    e.dataTransfer.effectAllowed = "move";
-  };
-
-  const handleTeamDragOver = (e, id) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
-    setDragOverTeamId(id);
-  };
-
-  const handleTeamDrop = async (e, targetId, yearGroup) => {
-    e.preventDefault();
-    setDragOverTeamId(null);
-    if (!draggedTeamId || draggedTeamId === targetId) return;
-
-    // Find the members for this year
-    const members = [...yearGroup.members];
-    const oldIndex = members.findIndex(m => m.id === draggedTeamId);
-    const newIndex = members.findIndex(m => m.id === targetId);
-
-    if (oldIndex === -1 || newIndex === -1) return;
-
-    const [movedMember] = members.splice(oldIndex, 1);
-    members.splice(newIndex, 0, movedMember);
-
-    // Update their sort_order
-    const updatedMembers = members.map((m, i) => ({ ...m, sort_order: i }));
-
-    // Optimistically update UI
+  const moveTeamMember = (year, index, direction) => {
+    const yearMembers = team.filter(m => (m.board_year || "Unknown") === year).sort((a,b) => a.sort_order - b.sort_order);
+    if ((direction === -1 && index === 0) || (direction === 1 && index === yearMembers.length - 1)) return;
+    
+    const newMembers = [...yearMembers];
+    const temp = newMembers[index];
+    newMembers[index] = newMembers[index + direction];
+    newMembers[index + direction] = temp;
+    
+    const updatedMembers = newMembers.map((m, i) => ({ ...m, sort_order: i }));
+    
     setTeam(prev => prev.map(m => {
       const updated = updatedMembers.find(um => um.id === m.id);
       return updated ? updated : m;
     }).sort((a,b) => {
-      if(a.board_year !== b.board_year) return b.board_year.localeCompare(a.board_year);
+      if(a.board_year !== b.board_year) return (b.board_year || "").localeCompare(a.board_year || "");
       return a.sort_order - b.sort_order;
     }));
-    setIsUpdatingTeamOrder(true);
+    
+    setUnsavedTeamYears(prev => ({ ...prev, [year]: true }));
+  };
 
+  const saveTeamOrder = async (year) => {
+    setIsUpdatingTeamOrder(true);
+    const yearMembers = team.filter(m => (m.board_year || "Unknown") === year).sort((a,b) => a.sort_order - b.sort_order);
     try {
       const res = await fetch("/api/update/board/order", {
         method: "PUT",
         headers: { "Content-Type": "application/json", "Authorization": token },
-        body: JSON.stringify({ orders: updatedMembers.map(m => ({ id: m.id, sort_order: m.sort_order })) })
+        body: JSON.stringify({ orders: yearMembers.map(m => ({ id: m.id, sort_order: m.sort_order })) })
       });
       handleApiError(res);
-      fetchTeam(); // Re-fetch to confirm
+      setUnsavedTeamYears(prev => ({ ...prev, [year]: false }));
+      fetchTeam(); 
     } catch (err) {
       console.error(err);
     }
     setIsUpdatingTeamOrder(false);
-    setDraggedTeamId(null);
   };
 
   const deleteCategory = async (id) => {
@@ -658,32 +628,63 @@ const Dashboard = () => {
                   <h2 style={{ fontFamily: "var(--font-en-display)", color: "var(--deep-red)", margin: 0 }}>Event Categories</h2>
                   {isUpdatingOrder && <span style={{ fontSize: "0.8rem", color: "var(--gold)" }}>Updating order...</span>}
                 </div>
-                <p style={{ fontSize: "0.9rem", color: "var(--ink-soft)", marginBottom: "20px" }}>Drag and drop to reorder categories.</p>
+                <p style={{ fontSize: "0.9rem", color: "var(--ink-soft)", marginBottom: "20px" }}>Use the Up/Down buttons to reorder categories.</p>
+                {unsavedCategoryOrder && (
+                  <button 
+                    onClick={saveCategoryOrder} 
+                    className="btn cursor-target"
+                    style={{ 
+                      marginBottom: "15px", 
+                      width: "100%",
+                    }}
+                  >
+                    SAVE CATEGORY ORDER
+                  </button>
+                )}
                 {categories.length === 0 ? <p>No categories found.</p> : (
                   <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "30px" }}>
-                    {categories.map((cat) => (
+                    {categories.map((cat, index) => (
                       <div 
                         key={cat.id} 
-                        draggable 
-                        onDragStart={(e) => handleCategoryDragStart(e, cat.id)}
-                        onDragEnd={() => { setDraggedCatId(null); setDragOverCatId(null); }}
-                        onDragOver={(e) => handleCategoryDragOver(e, cat.id)}
-                        onDragLeave={() => setDragOverCatId(null)}
-                        onDrop={(e) => handleCategoryDrop(e, cat.id)}
                         style={{ 
                             border: "1px solid #ddd", 
-                            borderTop: dragOverCatId === cat.id ? "3px solid var(--moss-green)" : "1px solid #ddd",
                             padding: "10px", 
                             borderRadius: "8px", 
                             position: "relative",
-                            cursor: "grab",
-                            opacity: draggedCatId === cat.id ? 0.5 : 1,
                             backgroundColor: "white"
                         }}
                       >
-                        <strong style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                          <span style={{ cursor: "grab", color: "#ccc" }}>☰</span> {cat.name}
-                        </strong>
+                        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "5px" }}>
+                          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                            <button 
+                              onClick={() => moveCategory(index, -1)} 
+                              disabled={index === 0}
+                              style={{ 
+                                background: index === 0 ? "#f5f5f5" : "#e0e0e0", 
+                                border: "none", 
+                                borderRadius: "4px", 
+                                cursor: index === 0 ? "not-allowed" : "pointer", 
+                                padding: "4px 10px", 
+                                fontSize: "0.8rem", 
+                                color: index === 0 ? "#ccc" : "#333"
+                              }}
+                            >▲</button>
+                            <button 
+                              onClick={() => moveCategory(index, 1)} 
+                              disabled={index === categories.length - 1}
+                              style={{ 
+                                background: index === categories.length - 1 ? "#f5f5f5" : "#e0e0e0", 
+                                border: "none", 
+                                borderRadius: "4px", 
+                                cursor: index === categories.length - 1 ? "not-allowed" : "pointer", 
+                                padding: "4px 10px", 
+                                fontSize: "0.8rem", 
+                                color: index === categories.length - 1 ? "#ccc" : "#333"
+                              }}
+                            >▼</button>
+                          </div>
+                          <strong>{cat.name}</strong>
+                        </div>
                         <p style={{ margin: "5px 0 0", fontSize: "0.9rem" }}>Sort Order: {cat.sort_order}</p>
                         <div style={{ position: "absolute", top: "10px", right: "10px", display: "flex", gap: "5px" }}>
                           <button onClick={() => startEditCategory(cat.id, cat)} className="btn ghost cursor-target" style={{ padding: "4px 8px", fontSize: "0.8rem" }}>Edit</button>
@@ -812,36 +813,66 @@ const Dashboard = () => {
                   <h2 style={{ fontFamily: "var(--font-en-display)", color: "var(--deep-red)", margin: 0 }}>Board Members</h2>
                   {isUpdatingTeamOrder && <span style={{ fontSize: "0.8rem", color: "var(--gold)" }}>Updating order...</span>}
                 </div>
-                <p style={{ fontSize: "0.9rem", color: "var(--ink-soft)", marginBottom: "20px" }}>Drag and drop to reorder members within their board year.</p>
+                <p style={{ fontSize: "0.9rem", color: "var(--ink-soft)", marginBottom: "20px" }}>Use the Up/Down buttons to reorder members within their board year.</p>
                 {groupedTeam.length === 0 ? <p>No Board members found.</p> : (
                   <div style={{ display: "flex", flexDirection: "column", gap: "20px", marginBottom: "30px" }}>
                     {groupedTeam.map(group => (
-                      <div key={group.year}>
-                          <h3 style={{ borderBottom: "1px solid var(--line)", paddingBottom: "5px" }}>Board {group.year}</h3>
-                          <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "10px" }}>
-                              {group.members.map((member) => (
+                      <div key={group.year} style={{ border: "1px solid var(--line)", padding: "15px", borderRadius: "12px", background: "var(--paper)" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--line)", paddingBottom: "10px", marginBottom: "15px" }}>
+                            <h3 style={{ margin: 0 }}>Board {group.year}</h3>
+                            {unsavedTeamYears[group.year] && (
+                              <button 
+                                onClick={() => saveTeamOrder(group.year)} 
+                                className="btn cursor-target"
+                                style={{ padding: "6px 12px", fontSize: "0.85rem" }}
+                              >
+                                SAVE ORDER
+                              </button>
+                            )}
+                          </div>
+                          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                              {group.members.map((member, index) => (
                                   <div 
                                     key={member.id} 
-                                    draggable
-                                    onDragStart={(e) => handleTeamDragStart(e, member.id)}
-                                    onDragEnd={() => { setDraggedTeamId(null); setDragOverTeamId(null); }}
-                                    onDragOver={(e) => handleTeamDragOver(e, member.id)}
-                                    onDragLeave={() => setDragOverTeamId(null)}
-                                    onDrop={(e) => handleTeamDrop(e, member.id, group)}
                                     style={{ 
                                       border: "1px solid #ddd", 
-                                      borderTop: dragOverTeamId === member.id ? "3px solid var(--moss-green)" : "1px solid #ddd",
                                       padding: "10px", 
                                       borderRadius: "8px", 
                                       position: "relative",
-                                      cursor: "grab",
-                                      opacity: draggedTeamId === member.id ? 0.5 : 1,
                                       backgroundColor: "white"
                                     }}
                                   >
-                                  <strong style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                                    <span style={{ cursor: "grab", color: "#ccc" }}>☰</span> {member.name}
-                                  </strong> - {member.role}
+                                  <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "5px" }}>
+                                    <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                                      <button 
+                                        onClick={() => moveTeamMember(group.year, index, -1)} 
+                                        disabled={index === 0}
+                                        style={{ 
+                                          background: index === 0 ? "#f5f5f5" : "#e0e0e0", 
+                                          border: "none", 
+                                          borderRadius: "4px", 
+                                          cursor: index === 0 ? "not-allowed" : "pointer", 
+                                          padding: "4px 10px", 
+                                          fontSize: "0.8rem", 
+                                          color: index === 0 ? "#ccc" : "#333"
+                                        }}
+                                      >▲</button>
+                                      <button 
+                                        onClick={() => moveTeamMember(group.year, index, 1)} 
+                                        disabled={index === group.members.length - 1}
+                                        style={{ 
+                                          background: index === group.members.length - 1 ? "#f5f5f5" : "#e0e0e0", 
+                                          border: "none", 
+                                          borderRadius: "4px", 
+                                          cursor: index === group.members.length - 1 ? "not-allowed" : "pointer", 
+                                          padding: "4px 10px", 
+                                          fontSize: "0.8rem", 
+                                          color: index === group.members.length - 1 ? "#ccc" : "#333"
+                                        }}
+                                      >▼</button>
+                                    </div>
+                                    <strong style={{ margin: 0 }}>{member.name}</strong> - {member.role}
+                                  </div>
                                   <p style={{ margin: "5px 0 0", fontSize: "0.9rem" }}>{member.description}</p>
                                   <p style={{ margin: "5px 0 0", fontSize: "0.8rem", color: "var(--ink-soft)" }}>Sort Order: {member.sort_order}</p>
                                   <div style={{ position: "absolute", top: "10px", right: "10px", display: "flex", gap: "5px" }}>
