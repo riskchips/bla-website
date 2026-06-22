@@ -1,8 +1,9 @@
 const express = require("express")
-
 const router = express.Router()
 
-const supabase = require("../config/supabase")
+// SUPABASE LOGIC COMMENTED OUT
+// const supabase = require("../config/supabase")
+const pool = require("../config/tidb")
 
 const adminAuth = require("../middleware/adminAuth")
 const browserGuard = require("../middleware/browserGuard")
@@ -52,8 +53,7 @@ router.post(
                 }
             )
 
-            const captchaResult =
-                await captchaResponse.json()
+            const captchaResult = await captchaResponse.json()
 
             if (!captchaResult.success) {
                 return res.status(400).json({
@@ -74,9 +74,9 @@ router.post(
             const cleanName = name.trim()
             const cleanDetails = details.trim()
 
-            const tenMinutesAgo =
-                Date.now() - (10 * 60 * 1000)
+            const tenMinutesAgo = Date.now() - (10 * 60 * 1000)
 
+            /* SUPABASE LOGIC
             const {
                 data: existing,
                 error: duplicateError
@@ -85,22 +85,27 @@ router.post(
                 .select("id")
                 .eq("name", cleanName)
                 .eq("details", cleanDetails)
-                .gte(
-                    "unix_timestamp",
-                    tenMinutesAgo
-                )
+                .gte("unix_timestamp", tenMinutesAgo)
                 .limit(1)
 
             if (duplicateError) {
                 console.error(duplicateError)
-
-                return res.status(500).json({
-                    success: false,
-                    message: "Database Error"
-                })
+                return res.status(500).json({ success: false, message: "Database Error" })
             }
 
             if (existing?.length) {
+                return res.status(429).json({ success: false, message: "Duplicate submission detected" })
+            }
+            */
+
+            // TIDB LOGIC
+            // Note: Make sure your contacts table has 'phone', 'details', and 'unix_timestamp' columns in TiDB!
+            const [existing] = await pool.query(
+                "SELECT id FROM contacts WHERE name = ? AND details = ? AND unix_timestamp >= ? LIMIT 1",
+                [cleanName, cleanDetails, tenMinutesAgo]
+            );
+
+            if (existing.length > 0) {
                 return res.status(429).json({
                     success: false,
                     message: "Duplicate submission detected"
@@ -108,42 +113,38 @@ router.post(
             }
 
             const unixTimestamp = Date.now()
+            const cleanEmail = email ? email.trim().toLowerCase() : null;
+            const cleanPhone = phone ? normalizeIndianPhone(phone) : null;
 
-            const {
-                data,
-                error
-            } = await supabase
+            /* SUPABASE LOGIC
+            const { data, error } = await supabase
                 .from("contacts")
                 .insert({
                     name: cleanName,
-                    email: email
-                        ? email.trim().toLowerCase()
-                        : null,
-                    phone: phone
-                        ? normalizeIndianPhone(phone)
-                        : null,
+                    email: cleanEmail,
+                    phone: cleanPhone,
                     details: cleanDetails,
                     unix_timestamp: unixTimestamp
                 })
                 .select()
                 .single()
+            */
 
-            if (error) {
-                console.error(error)
+            // TIDB LOGIC
+            const [insertResult] = await pool.execute(
+                `INSERT INTO contacts (name, email, phone, details, unix_timestamp) 
+                 VALUES (?, ?, ?, ?, ?)`,
+                [cleanName, cleanEmail, cleanPhone, cleanDetails, unixTimestamp]
+            );
 
-                return res.status(500).json({
-                    success: false,
-                    message: "Database Error"
-                })
-            }
+            const [newRows] = await pool.query("SELECT * FROM contacts WHERE id = ?", [insertResult.insertId]);
 
             return res.status(201).json({
                 success: true,
-                contact: data
+                contact: newRows[0]
             })
         } catch (error) {
             console.error(error)
-
             return res.status(500).json({
                 success: false,
                 message: "Internal Server Error"
@@ -161,57 +162,41 @@ router.get(
             let page = Number(req.query.page) || 1
             let limit = Number(req.query.limit) || 30
 
-            if (page < 1) {
-                page = 1
-            }
+            if (page < 1) page = 1;
+            if (limit < 1) limit = 1;
+            if (limit > 30) limit = 30;
 
-            if (limit < 1) {
-                limit = 1
-            }
+            const offset = (page - 1) * limit;
 
-            if (limit > 30) {
-                limit = 30
-            }
-
+            /* SUPABASE LOGIC
             const from = (page - 1) * limit
             const to = from + limit - 1
-
-            const {
-                data,
-                count,
-                error
-            } = await supabase
+            const { data, count, error } = await supabase
                 .from("contacts")
-                .select("*", {
-                    count: "exact"
-                })
-                .order("unix_timestamp", {
-                    ascending: false
-                })
+                .select("*", { count: "exact" })
+                .order("unix_timestamp", { ascending: false })
                 .range(from, to)
+            */
 
-            if (error) {
-                console.error(error)
+            // TIDB LOGIC
+            const [countRows] = await pool.query("SELECT COUNT(*) as total FROM contacts");
+            const count = countRows[0].total;
 
-                return res.status(500).json({
-                    success: false,
-                    message: "Database Error"
-                })
-            }
+            const [data] = await pool.query(
+                "SELECT * FROM contacts ORDER BY unix_timestamp DESC LIMIT ? OFFSET ?",
+                [limit, offset]
+            );
 
             return res.json({
                 success: true,
                 page,
                 limit,
                 total: count,
-                totalPages: Math.ceil(
-                    (count || 0) / limit
-                ),
+                totalPages: Math.ceil(count / limit),
                 contacts: data
             })
         } catch (error) {
             console.error(error)
-
             return res.status(500).json({
                 success: false,
                 message: "Internal Server Error"
@@ -228,18 +213,15 @@ router.delete(
         try {
             const { id } = req.params
 
+            /* SUPABASE LOGIC
             const { error } = await supabase
                 .from("contacts")
                 .delete()
                 .eq("id", id)
+            */
 
-            if (error) {
-                console.error(error)
-                return res.status(500).json({
-                    success: false,
-                    message: "Database Error"
-                })
-            }
+            // TIDB LOGIC
+            await pool.execute("DELETE FROM contacts WHERE id = ?", [id]);
 
             return res.json({
                 success: true,

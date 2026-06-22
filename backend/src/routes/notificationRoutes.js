@@ -1,8 +1,9 @@
 const express = require("express")
-
 const router = express.Router()
 
-const supabase = require("../config/supabase")
+// SUPABASE LOGIC COMMENTED OUT
+// const supabase = require("../config/supabase")
+const pool = require("../config/tidb")
 
 const adminAuth = require("../middleware/adminAuth")
 const browserGuard = require("../middleware/browserGuard")
@@ -18,25 +19,32 @@ router.get(
     notificationLimiter,
     async (req, res) => {
         try {
+            /* SUPABASE LOGIC
             const { data, error } = await supabase
                 .from("notifications")
                 .select("*")
                 .order("unix_timestamp", {
                     ascending: false
                 })
+            */
 
-            if (error) {
-                return res.status(500).json({
-                    success: false,
-                    message: error.message
-                })
-            }
+            // TIDB LOGIC
+            const [rows] = await pool.query("SELECT * FROM notifications ORDER BY unix_timestamp DESC");
+
+            // Map json fields
+            const data = rows.map(row => {
+                if (typeof row.buttons === 'string') {
+                    try { row.buttons = JSON.parse(row.buttons); } catch(e) {}
+                }
+                return row;
+            });
 
             return res.json({
                 success: true,
                 notifications: data
             })
-        } catch {
+        } catch (err) {
+            console.error(err);
             return res.status(500).json({
                 success: false,
                 message: "Internal Server Error"
@@ -58,48 +66,26 @@ router.post(
                 buttons
             } = req.body
 
-            if (
-                !title ||
-                !details ||
-                !date
-            ) {
-                return res.status(400).json({
-                    success: false,
-                    message: "Missing fields"
-                })
+            if (!title || !details || !date) {
+                return res.status(400).json({ success: false, message: "Missing fields" })
             }
 
-            if (
-                buttons &&
-                !Array.isArray(buttons)
-            ) {
-                return res.status(400).json({
-                    success: false,
-                    message: "Buttons must be array"
-                })
+            if (buttons && !Array.isArray(buttons)) {
+                return res.status(400).json({ success: false, message: "Buttons must be array" })
             }
 
             const parsedButtons = []
 
             if (buttons) {
                 for (const button of buttons) {
-                    if (
-                        !button.name ||
-                        !button.link
-                    ) {
-                        return res.status(400).json({
-                            success: false,
-                            message: "Invalid button"
-                        })
+                    if (!button.name || !button.link) {
+                        return res.status(400).json({ success: false, message: "Invalid button" })
                     }
 
                     try {
                         new URL(button.link)
                     } catch {
-                        return res.status(400).json({
-                            success: false,
-                            message: "Invalid button link"
-                        })
+                        return res.status(400).json({ success: false, message: "Invalid button link" })
                     }
 
                     parsedButtons.push({
@@ -111,6 +97,7 @@ router.post(
 
             const unixTimestamp = Date.now()
 
+            /* SUPABASE LOGIC
             const { data, error } = await supabase
                 .from("notifications")
                 .insert({
@@ -122,19 +109,28 @@ router.post(
                 })
                 .select()
                 .single()
+            */
+            
+            // TIDB LOGIC
+            const cleanTitle = title.trim();
+            const cleanDetails = details.trim();
+            const cleanDate = date.trim();
+            const buttonsJson = JSON.stringify(parsedButtons);
 
-            if (error) {
-                return res.status(500).json({
-                    success: false,
-                    message: error.message
-                })
-            }
+            const [result] = await pool.execute(
+                `INSERT INTO notifications (title, details, date, buttons, unix_timestamp)
+                 VALUES (?, ?, ?, ?, ?)`,
+                [cleanTitle, cleanDetails, cleanDate, buttonsJson, unixTimestamp]
+            );
+
+            const [rows] = await pool.query("SELECT * FROM notifications WHERE id = ?", [result.insertId]);
 
             return res.json({
                 success: true,
-                notification: data
+                notification: rows[0]
             })
-        } catch {
+        } catch (err) {
+            console.error(err);
             return res.status(500).json({
                 success: false,
                 message: "Internal Server Error"
@@ -151,23 +147,22 @@ router.delete(
         try {
             const { id } = req.params
 
+            /* SUPABASE LOGIC
             const { error } = await supabase
                 .from("notifications")
                 .delete()
                 .eq("id", id)
+            */
 
-            if (error) {
-                return res.status(500).json({
-                    success: false,
-                    message: error.message
-                })
-            }
+            // TIDB LOGIC
+            await pool.execute("DELETE FROM notifications WHERE id = ?", [id]);
 
             return res.json({
                 success: true,
                 message: "Notification deleted"
             })
-        } catch {
+        } catch (err) {
+            console.error(err);
             return res.status(500).json({
                 success: false,
                 message: "Internal Server Error"
