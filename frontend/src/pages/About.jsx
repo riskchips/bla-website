@@ -168,7 +168,7 @@ const About = () => {
                 <>
                   <p>
                     The Bengali Literary Association —{" "}
-                    <span className="bn">ঐকতান</span> — started simply: a few students missing the familiar sound of Bengali around campus. It quickly grew into a vibrant cultural hub open to anyone, regardless of where they're from or what language they speak.
+                    <span className="bn">ঐক্যতান</span> — started simply: a few students missing the familiar sound of Bengali around campus. It quickly grew into a vibrant cultural hub open to anyone, regardless of where they're from or what language they speak.
                   </p>
                   <p>
                     We're all about celebrating what makes Bengali culture so rich—whether that's getting lost in a poem, jamming to Rabindra Sangeet, painting together, or just sharing a good adda over a cup of chai. From big festivals like Rabindra Jayanti to casual open mics and sketchwalks, everything we do is driven entirely by students.
@@ -261,7 +261,7 @@ const About = () => {
               <p>
                 We promise to keep things authentic, student-led, and welcoming. Whether you want to take the stage, share your art, or just grab a seat and listen, there's always room for you here.
               </p>
-              <p className="bn">— শব্দে শব্দে বাংলা, সুরে সুরে আমরা।</p>
+              <p className="bn">— বাড়ি থেকে দূরে তাই, BLA তে আসা চাই</p>
             </div>
           </ScrollReveal>
         </div>
