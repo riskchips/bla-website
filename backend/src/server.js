@@ -15,6 +15,8 @@ const eventRoutes = require("./routes/eventRoutes")
 const adminRoutes = require("./routes/adminRoutes")
 const aboutRoutes = require("./routes/aboutRoutes")
 const wordRoutes = require("./routes/wordRoutes")
+const { staticLimiter, adminLimiter } = require("./middleware/rateLimits")
+const adminAuth = require("./middleware/adminAuth")
 
 const app = express()
 
@@ -107,7 +109,7 @@ app.use("/api", adminRoutes)
 app.use("/api", aboutRoutes)
 app.use("/api", wordRoutes)
 
-app.get("/api/terms", async (req, res) => {
+app.get("/api/terms", staticLimiter, async (req, res) => {
     try {
         const file = await fs.readFile(
             path.join(
@@ -132,7 +134,7 @@ app.get("/api/terms", async (req, res) => {
     }
 })
 
-app.get("/api/privacy", async (req, res) => {
+app.get("/api/privacy", staticLimiter, async (req, res) => {
     try {
         const file = await fs.readFile(
             path.join(
@@ -159,7 +161,7 @@ app.get("/api/privacy", async (req, res) => {
 
 const https = require("https");
 
-app.post("/upload-proxy", (req, res) => {
+app.post("/upload-proxy", adminLimiter, adminAuth, (req, res) => {
     const options = {
         hostname: 'image.arnabdev.space',
         port: 443,

@@ -48,6 +48,20 @@ const aboutLimiter = rateLimit({
     legacyHeaders: false,
 })
 
+const wordLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    standardHeaders: true,
+    legacyHeaders: false,
+})
+
+const staticLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    standardHeaders: true,
+    legacyHeaders: false,
+})
+
 module.exports = {
     notificationLimiter,
     contactLimiter,
@@ -55,5 +69,7 @@ module.exports = {
     adminLimiter,
     boardLimiter,
     eventLimiter,
-    aboutLimiter
+    aboutLimiter,
+    wordLimiter,
+    staticLimiter
 }

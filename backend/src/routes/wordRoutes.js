@@ -2,13 +2,14 @@ const express = require("express");
 const router = express.Router();
 const pool = require("../config/tidb");
 const adminAuth = require("../middleware/adminAuth");
+const { wordLimiter } = require("../middleware/rateLimits");
 
 // In-memory cache for public word of the day
 let cachedWord = null;
 let cacheDate = null;
 
 // Public endpoint
-router.get("/word-of-the-day", async (req, res) => {
+router.get("/word-of-the-day", wordLimiter, async (req, res) => {
     try {
         const today = new Date();
         // Use local time for YYYY-MM-DD
