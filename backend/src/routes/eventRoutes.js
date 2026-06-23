@@ -202,7 +202,17 @@ router.post(
             const cleanName = name.trim();
             const cleanDesc = description.trim();
             const tsString = timestamp.toString();
-            const galleryJson = Array.isArray(gallery) ? JSON.stringify(gallery) : JSON.stringify([]);
+            
+            let parsedGallery = [];
+            if (Array.isArray(gallery)) {
+                parsedGallery = gallery;
+            } else if (typeof gallery === 'string') {
+                try {
+                    const parsed = JSON.parse(gallery);
+                    if (Array.isArray(parsed)) parsedGallery = parsed;
+                } catch (e) { /* ignore */ }
+            }
+            const galleryJson = JSON.stringify(parsedGallery);
             const poster = poster_image ? poster_image.trim() : null;
             const catId = category_id || null;
 

@@ -9,6 +9,8 @@ const pool = require("../config/tidb");
 const adminAuth = require("../middleware/adminAuth");
 const { aboutLimiter, adminLimiter } = require("../middleware/rateLimits");
 
+let cachedAboutContent = null;
+
 router.get("/about", aboutLimiter, async (req, res) => {
     try {
         /* SUPABASE LOGIC
@@ -29,13 +31,23 @@ router.get("/about", aboutLimiter, async (req, res) => {
         */
 
         // TIDB LOGIC
+        if (cachedAboutContent !== null) {
+            return res.json({
+                success: true,
+                content: cachedAboutContent
+            });
+        }
+
         const [rows] = await pool.query(
             "SELECT content FROM about_content WHERE id = 1 LIMIT 1"
         );
 
+        const content = rows.length > 0 ? rows[0].content : "";
+        cachedAboutContent = content; // Store in cache
+
         return res.json({
             success: true,
-            content: rows.length > 0 ? rows[0].content : ""
+            content: content
         });
 
     } catch (err) {
@@ -77,6 +89,8 @@ router.put("/update/about", adminLimiter, adminAuth, async (req, res) => {
 
         // Fetch back to confirm (similar to .select().single())
         const [rows] = await pool.query("SELECT content FROM about_content WHERE id = 1");
+        
+        cachedAboutContent = null; // Invalidate cache after update
 
         return res.json({ success: true, content: rows[0].content });
 

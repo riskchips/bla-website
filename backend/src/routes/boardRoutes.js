@@ -100,24 +100,37 @@ router.post(
             */
 
             // TIDB LOGIC
-            const id = crypto.randomUUID(); // generate UUID for id since TiDB schema uses VARCHAR(50) for id
             const newName = name.trim();
             const newRole = role.trim();
             const newDesc = description ? description.trim() : "";
             const newImage = image ? image.trim() : "";
             const newYear = board_year ? board_year.trim() : "2026-27";
             
-            // Get max sort order to append at the end
-            const [orderRows] = await pool.query("SELECT MAX(sort_order) as maxOrder FROM team");
-            const newSortOrder = (orderRows[0].maxOrder || 0) + 1;
+            let insertedId;
+            const connection = await pool.getConnection();
+            try {
+                await connection.beginTransaction();
+                
+                // Get max sort order with FOR UPDATE to prevent race conditions
+                const [orderRows] = await connection.query("SELECT MAX(sort_order) as maxOrder FROM team FOR UPDATE");
+                const newSortOrder = (orderRows[0].maxOrder || 0) + 1;
 
-            await pool.execute(
-                `INSERT INTO team (id, name, role, description, image, board_year, sort_order, created_at)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`,
-                [id, newName, newRole, newDesc, newImage, newYear, newSortOrder]
-            )
+                const [result] = await connection.execute(
+                    `INSERT INTO team (name, role, description, image, board_year, sort_order, created_at)
+                     VALUES (?, ?, ?, ?, ?, ?, NOW())`,
+                    [newName, newRole, newDesc, newImage, newYear, newSortOrder]
+                );
+                insertedId = result.insertId;
+                
+                await connection.commit();
+            } catch (err) {
+                await connection.rollback();
+                throw err;
+            } finally {
+                connection.release();
+            }
 
-            const [rows] = await pool.query("SELECT * FROM team WHERE id = ?", [id]);
+            const [rows] = await pool.query("SELECT * FROM team WHERE id = ?", [insertedId]);
 
             return res.json({
                 success: true,
