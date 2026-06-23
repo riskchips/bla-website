@@ -83,6 +83,16 @@ router.post("/admin/words", adminAuth, async (req, res) => {
 
         const queryDate = date ? date : null;
 
+        if (queryDate) {
+            const [existing] = await pool.query(
+                "SELECT id FROM word_of_the_day WHERE date = ? LIMIT 1",
+                [queryDate]
+            );
+            if (existing.length > 0) {
+                return res.status(400).json({ success: false, message: "A word is already scheduled for this date. Please edit the existing word instead." });
+            }
+        }
+
         await pool.query(
             "INSERT INTO word_of_the_day (date, bn, en, pronunciation) VALUES (?, ?, ?, ?)",
             [queryDate, bn, en, pronunciation]
@@ -106,6 +116,16 @@ router.put("/admin/words/:id", adminAuth, async (req, res) => {
         }
 
         const queryDate = date ? date : null;
+
+        if (queryDate) {
+            const [existing] = await pool.query(
+                "SELECT id FROM word_of_the_day WHERE date = ? AND id != ? LIMIT 1",
+                [queryDate, id]
+            );
+            if (existing.length > 0) {
+                return res.status(400).json({ success: false, message: "Another word is already scheduled for this date." });
+            }
+        }
 
         await pool.query(
             "UPDATE word_of_the_day SET date = ?, bn = ?, en = ?, pronunciation = ? WHERE id = ?",
