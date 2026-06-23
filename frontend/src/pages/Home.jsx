@@ -5,7 +5,7 @@ import PageTransition from "../components/PageTransition";
 import AlpanaDivider from "../components/AlpanaDivider";
 import Ornament from "../components/Ornament";
 import { SkeletonCard } from "../components/Skeleton";
-import { getNotifications, getEvents } from "../api";
+import { getNotifications, getEvents, getWordOfTheDay } from "../api";
 import useScrollReveal from "../hooks/useScrollReveal";
 
 /* ─── Scroll Reveal wrapper ─── */
@@ -22,44 +22,6 @@ const ScrollReveal = ({ children, className = "", delay = 0 }) => {
   );
 };
 
-/* ─── Bengali Word of the Day ─── */
-const words = [
-  {
-    bn: "অভিসার",
-    en: "A secret rendezvous, especially romantic",
-    pronunciation: "Obhishar",
-  },
-  {
-    bn: "মায়াবী",
-    en: "Enchanting, magical, illusory",
-    pronunciation: "Mayabi",
-  },
-  {
-    bn: "নিসর্গ",
-    en: "Nature in its purest, untouched form",
-    pronunciation: "Nishorgo",
-  },
-  {
-    bn: "বিভাবরী",
-    en: "The night, darkness personified",
-    pronunciation: "Bibhabori",
-  },
-  {
-    bn: "ঊর্মিমালা",
-    en: "A garland of waves",
-    pronunciation: "Urmimala",
-  },
-  {
-    bn: "অলকানন্দা",
-    en: "A celestial river, bearer of joy",
-    pronunciation: "Olokanonda",
-  },
-  {
-    bn: "চাঁদনী",
-    en: "Moonlight, a night bathed in silver",
-    pronunciation: "Chandni",
-  },
-];
 
 /* ─── Date formatter ─── */
 const formatDate = (ts) => {
@@ -92,6 +54,8 @@ const Home = () => {
   const [events, setEvents] = useState(null);
   const [notifErr, setNotifErr] = useState(null);
   const [eventErr, setEventErr] = useState(null);
+  const [todaysWord, setTodaysWord] = useState(null);
+  const [wordErr, setWordErr] = useState(null);
 
   useEffect(() => {
     getNotifications()
@@ -106,9 +70,11 @@ const Home = () => {
     getEvents()
       .then((r) => setEvents(r.events || []))
       .catch((e) => setEventErr(e.message));
-  }, []);
 
-  const todaysWord = words[new Date().getDate() % words.length];
+    getWordOfTheDay()
+      .then((r) => setTodaysWord(r.word))
+      .catch((e) => setWordErr(e.message));
+  }, []);
 
   return (
     <PageTransition>
@@ -321,11 +287,17 @@ const Home = () => {
             <div className="word-of-day-card">
               <div className="word-label">✾ Bengali Word of the Day ✾</div>
               <div className="word-content">
-                <div className="bn-word">{todaysWord.bn}</div>
-                <div className="word-pronunciation">
-                  /{todaysWord.pronunciation}/
-                </div>
-                <div className="en-meaning">{todaysWord.en}</div>
+                {!todaysWord ? (
+                  <SkeletonCard count={1} />
+                ) : (
+                  <>
+                    <div className="bn-word">{todaysWord.bn}</div>
+                    <div className="word-pronunciation">
+                      /{todaysWord.pronunciation}/
+                    </div>
+                    <div className="en-meaning">{todaysWord.en}</div>
+                  </>
+                )}
               </div>
             </div>
           </ScrollReveal>

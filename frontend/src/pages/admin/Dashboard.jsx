@@ -66,6 +66,15 @@ const Dashboard = () => {
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [messageType, setMessageType] = useState(null);
 
+  // Words State
+  const [words, setWords] = useState([]);
+  const [editWordId, setEditWordId] = useState(null);
+  const [wordDate, setWordDate] = useState("");
+  const [wordBn, setWordBn] = useState("");
+  const [wordEn, setWordEn] = useState("");
+  const [wordPronunciation, setWordPronunciation] = useState("");
+  const [wordStatus, setWordStatus] = useState(null);
+
   const token = localStorage.getItem(ADMIN_KEY);
 
   const logout = () => {
@@ -130,6 +139,13 @@ const Dashboard = () => {
       .catch(console.error);
   };
 
+  const fetchWords = () => {
+    fetch("/api/admin/words", { headers: { "Authorization": token } })
+      .then(res => res.json())
+      .then(data => { if(data?.success) setWords(data.words); })
+      .catch(console.error);
+  };
+
   useEffect(() => {
     if (!token) {
       navigate("/admin-bla-x7ke", { replace: true });
@@ -141,6 +157,7 @@ const Dashboard = () => {
     else if (activeTab === "team") fetchTeam();
     else if (activeTab === "categories") fetchCategories();
     else if (activeTab === "about") fetchAbout();
+    else if (activeTab === "words") fetchWords();
     else if (activeTab === "events") {
       fetchEvents();
       fetchCategories(); // Needed for the dropdown
@@ -485,6 +502,47 @@ const Dashboard = () => {
     }
   };
 
+  const submitWord = async (e) => {
+    e.preventDefault();
+    setWordStatus("Saving...");
+    try {
+      const payload = {
+        date: wordDate || null,
+        bn: wordBn,
+        en: wordEn,
+        pronunciation: wordPronunciation
+      };
+      const res = await fetch(editWordId ? `/api/admin/words/${editWordId}` : "/api/admin/words", {
+        method: editWordId ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json", "Authorization": token },
+        body: JSON.stringify(payload)
+      });
+      handleApiError(res);
+      const data = await res.json();
+      if (data.success) {
+        setWordStatus(`Word ${editWordId ? "updated" : "added"} successfully!`);
+        setWordDate(""); setWordBn(""); setWordEn(""); setWordPronunciation("");
+        setEditWordId(null);
+        fetchWords();
+      } else {
+        setWordStatus(data.message || "Failed to save word.");
+      }
+    } catch (err) {
+      setWordStatus("Error saving word.");
+    }
+  };
+
+  const deleteWord = async (id) => {
+    if (!window.confirm("Delete this word?")) return;
+    try {
+      const res = await fetch(`/api/admin/words/${id}`, {
+        method: "DELETE", headers: { "Authorization": token }
+      });
+      handleApiError(res);
+      fetchWords();
+    } catch (e) { console.error(e); }
+  };
+
   const tabs = [
     { id: "contacts", label: "Contacts" },
     { id: "help", label: "Help Requests" },
@@ -492,7 +550,8 @@ const Dashboard = () => {
     { id: "categories", label: "Event Categories" },
     { id: "events", label: "Events" },
     { id: "team", label: "Board Management" },
-    { id: "about", label: "About Page" }
+    { id: "about", label: "About Page" },
+    { id: "words", label: "Word of the Day" }
   ];
 
   // Group team members by board year
@@ -959,6 +1018,75 @@ const Dashboard = () => {
                 {aboutStatus && <p style={{ color: "var(--terracotta)" }}>{aboutStatus}</p>}
                 <button type="submit" className="btn cursor-target">Save Content</button>
               </form>
+            </div>
+          )}
+
+          {activeTab === "words" && (
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "20px" }}>
+                <h2 style={{ fontFamily: "var(--font-en-display)", color: "var(--deep-red)" }}>Word of the Day</h2>
+              </div>
+              
+              <div className="card" style={{ marginTop: "20px" }}>
+                <h3 style={{ marginBottom: "15px" }}>{editWordId ? "Edit Word" : "Add New Word"}</h3>
+                <form onSubmit={submitWord} style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
+                  <div className="field">
+                    <label className="label">Date (Optional)</label>
+                    <input type="date" className="input" value={wordDate} onChange={e => setWordDate(e.target.value)} />
+                    <p style={{ fontSize: "0.8rem", color: "var(--ink-soft)" }}>Leave empty to add to the default pool.</p>
+                  </div>
+                  <div className="field">
+                    <label className="label">Bengali Word</label>
+                    <input type="text" className="input" value={wordBn} onChange={e => setWordBn(e.target.value)} required />
+                  </div>
+                  <div className="field">
+                    <label className="label">English Meaning</label>
+                    <input type="text" className="input" value={wordEn} onChange={e => setWordEn(e.target.value)} required />
+                  </div>
+                  <div className="field">
+                    <label className="label">English Pronunciation</label>
+                    <input type="text" className="input" value={wordPronunciation} onChange={e => setWordPronunciation(e.target.value)} required />
+                  </div>
+                  {wordStatus && <p style={{ color: "var(--terracotta)" }}>{wordStatus}</p>}
+                  <div style={{ display: "flex", gap: "10px" }}>
+                    <button type="submit" className="btn cursor-target">{editWordId ? "Update" : "Add"} Word</button>
+                    {editWordId && (
+                      <button type="button" className="btn ghost cursor-target" onClick={() => {
+                        setEditWordId(null); setWordDate(""); setWordBn(""); setWordEn(""); setWordPronunciation("");
+                      }}>Cancel Edit</button>
+                    )}
+                  </div>
+                </form>
+              </div>
+
+              <div style={{ marginTop: "40px" }}>
+                <h3>Existing Words</h3>
+                {words.length === 0 ? <p>No words found.</p> : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "15px", marginTop: "20px" }}>
+                    {words.map(w => (
+                      <div key={w.id} className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <div>
+                          <strong>{w.bn}</strong> <em>(/{w.pronunciation}/)</em> - {w.en}
+                          <div style={{ fontSize: "0.85rem", color: "var(--ink-soft)", marginTop: "5px" }}>
+                            {w.date ? `Scheduled for: ${w.date}` : "Default Pool Word"}
+                          </div>
+                        </div>
+                        <div style={{ display: "flex", gap: "10px" }}>
+                          <button onClick={() => {
+                            setEditWordId(w.id);
+                            setWordDate(w.date || "");
+                            setWordBn(w.bn);
+                            setWordEn(w.en);
+                            setWordPronunciation(w.pronunciation);
+                            window.scrollTo(0, 0);
+                          }} className="btn ghost cursor-target" style={{ padding: "5px 10px", fontSize: "0.9rem" }}>Edit</button>
+                          <button onClick={() => deleteWord(w.id)} className="btn cursor-target" style={{ background: "var(--terracotta)", color: "white", padding: "5px 10px", fontSize: "0.9rem" }}>Delete</button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>

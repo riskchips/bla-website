@@ -14,6 +14,7 @@ const boardRoutes = require("./routes/boardRoutes")
 const eventRoutes = require("./routes/eventRoutes")
 const adminRoutes = require("./routes/adminRoutes")
 const aboutRoutes = require("./routes/aboutRoutes")
+const wordRoutes = require("./routes/wordRoutes")
 
 const app = express()
 
@@ -104,6 +105,7 @@ app.use("/api", boardRoutes)
 app.use("/api", eventRoutes)
 app.use("/api", adminRoutes)
 app.use("/api", aboutRoutes)
+app.use("/api", wordRoutes)
 
 app.get("/api/terms", async (req, res) => {
     try {

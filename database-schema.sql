@@ -67,3 +67,13 @@ CREATE TABLE about_content (
   content text NOT NULL,
   updated_at timestamp with time zone DEFAULT timezone('utc'::text, now())
 );
+
+-- Create word_of_the_day table
+CREATE TABLE word_of_the_day (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    date TEXT, -- YYYY-MM-DD or NULL for default words
+    bn TEXT NOT NULL,
+    en TEXT NOT NULL,
+    pronunciation TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

@@ -80,3 +80,41 @@ export const HELP_CATEGORIES = [
   "Event Issue",
   "Other",
 ];
+
+export const getWordOfTheDay = async () => {
+  const res = await fetch("/api/word-of-the-day", { headers: { Accept: "application/json" } });
+  return json(res);
+};
+
+export const getAdminWords = async (token) => {
+  const res = await fetch("/api/admin/words", {
+    headers: { Accept: "application/json", Authorization: token },
+  });
+  return json(res);
+};
+
+export const createAdminWord = async (token, payload) => {
+  const res = await fetch("/api/admin/words", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json", Authorization: token },
+    body: JSON.stringify(payload),
+  });
+  return json(res);
+};
+
+export const updateAdminWord = async (token, id, payload) => {
+  const res = await fetch(`/api/admin/words/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", Accept: "application/json", Authorization: token },
+    body: JSON.stringify(payload),
+  });
+  return json(res);
+};
+
+export const deleteAdminWord = async (token, id) => {
+  const res = await fetch(`/api/admin/words/${id}`, {
+    method: "DELETE",
+    headers: { Accept: "application/json", Authorization: token },
+  });
+  return json(res);
+};
