@@ -657,7 +657,6 @@ const Dashboard = () => {
                             border: "1px solid #ddd", 
                             padding: "10px", 
                             borderRadius: "8px", 
-                            position: "relative",
                             backgroundColor: "white"
                         }}
                       >
@@ -693,7 +692,7 @@ const Dashboard = () => {
                           <strong>{cat.name}</strong>
                         </div>
                         <p style={{ margin: "5px 0 0", fontSize: "0.9rem" }}>Sort Order: {cat.sort_order}</p>
-                        <div style={{ position: "absolute", top: "10px", right: "10px", display: "flex", gap: "5px" }}>
+                        <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "12px" }}>
                           <button onClick={() => startEditCategory(cat.id, cat)} className="btn ghost cursor-target" style={{ padding: "4px 8px", fontSize: "0.8rem" }}>Edit</button>
                           <button onClick={() => deleteCategory(cat.id)} className="btn cursor-target" style={{ background: "var(--deep-red)", padding: "4px 8px", fontSize: "0.8rem", color: "white" }}>Delete</button>
                         </div>
@@ -735,12 +734,12 @@ const Dashboard = () => {
                 {events.length === 0 ? <p>No events found.</p> : (
                   <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "30px" }}>
                     {events.map((ev) => (
-                      <div key={ev.id} style={{ border: "1px solid #ddd", padding: "10px", borderRadius: "8px", position: "relative", paddingRight: "120px" }}>
+                      <div key={ev.id} style={{ border: "1px solid #ddd", padding: "10px", borderRadius: "8px", backgroundColor: "white" }}>
                         <strong>{ev.name}</strong> - {new Date(parseInt(ev.timestamp)).toLocaleDateString()}
                         <p style={{ margin: "5px 0 0", fontSize: "0.9rem" }}>{ev.description}</p>
                         <p style={{ margin: "5px 0 0", fontSize: "0.8rem", color: "var(--ink-soft)" }}>Images: {ev.gallery?.length || 0}</p>
                         <p style={{ margin: "5px 0 0", fontSize: "0.8rem", color: "var(--gold)" }}>Category: {ev.event_categories?.name || "None"}</p>
-                        <div style={{ position: "absolute", top: "10px", right: "10px", display: "flex", gap: "5px" }}>
+                        <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "12px" }}>
                           <button onClick={() => startEditEvent(ev.id, ev)} className="btn ghost cursor-target" style={{ padding: "4px 8px", fontSize: "0.8rem" }}>Edit</button>
                           <button onClick={() => deleteEvent(ev.id)} className="btn cursor-target" style={{ background: "var(--deep-red)", padding: "4px 8px", fontSize: "0.8rem", color: "white" }}>Delete</button>
                         </div>
@@ -845,7 +844,6 @@ const Dashboard = () => {
                                       border: "1px solid #ddd", 
                                       padding: "10px", 
                                       borderRadius: "8px", 
-                                      position: "relative",
                                       backgroundColor: "white"
                                     }}
                                   >
@@ -882,7 +880,7 @@ const Dashboard = () => {
                                   </div>
                                   <p style={{ margin: "5px 0 0", fontSize: "0.9rem" }}>{member.description}</p>
                                   <p style={{ margin: "5px 0 0", fontSize: "0.8rem", color: "var(--ink-soft)" }}>Sort Order: {member.sort_order}</p>
-                                  <div style={{ position: "absolute", top: "10px", right: "10px", display: "flex", gap: "5px" }}>
+                                  <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "12px" }}>
                                       <button onClick={() => startEditTeam(member.id, member)} className="btn ghost cursor-target" style={{ padding: "4px 8px", fontSize: "0.8rem" }}>Edit</button>
                                       <button onClick={() => deleteTeamMember(member.id)} className="btn cursor-target" style={{ background: "var(--deep-red)", padding: "4px 8px", fontSize: "0.8rem", color: "white" }}>Delete</button>
                                   </div>
