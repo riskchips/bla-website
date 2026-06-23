@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import ImageUploader from "../../components/ImageUploader";
 
@@ -7,6 +7,10 @@ const ADMIN_KEY = "bla_admin_token";
 const Dashboard = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("contacts");
+  
+  const categoryFormRef = useRef(null);
+  const eventFormRef = useRef(null);
+  const teamFormRef = useRef(null);
   
   const [contacts, setContacts] = useState([]);
   const [grievances, setGrievances] = useState([]);
@@ -322,6 +326,7 @@ const Dashboard = () => {
     setCategoryName(cat.name);
     setCategorySortOrder(cat.sort_order.toString());
     setCategoryStatus(null);
+    setTimeout(() => categoryFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
   };
 
   const submitCategory = async (e) => {
@@ -368,6 +373,7 @@ const Dashboard = () => {
     setEventPoster(ev.poster_image || "");
     setEventCategoryId(ev.category_id || "");
     setEventStatus(null);
+    setTimeout(() => eventFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
   };
 
   const submitEvent = async (e) => {
@@ -422,6 +428,7 @@ const Dashboard = () => {
     setTeamImage(member.image);
     setTeamBoardYear(member.board_year || "2026-27");
     setTeamStatus(null);
+    setTimeout(() => teamFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
   };
 
   const submitAbout = async (e) => {
@@ -696,7 +703,7 @@ const Dashboard = () => {
                 )}
               </div>
 
-              <div style={{ flex: "0 0 350px", position: "sticky", top: "20px", background: "var(--paper)", padding: "20px", borderRadius: "12px", border: "1px solid var(--line)", boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
+              <div ref={categoryFormRef} style={{ flex: "0 0 350px", position: "sticky", top: "20px", background: "var(--paper)", padding: "20px", borderRadius: "12px", border: "1px solid var(--line)", boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
                   <h2 style={{ fontFamily: "var(--font-en-display)", color: "var(--deep-red)", margin: 0, fontSize: "1.5rem" }}>
                     {editCategoryId !== null ? "Edit Category" : "Create Category"}
@@ -743,7 +750,7 @@ const Dashboard = () => {
                 )}
               </div>
 
-              <div style={{ flex: "0 0 350px", position: "sticky", top: "20px", background: "var(--paper)", padding: "20px", borderRadius: "12px", border: "1px solid var(--line)", boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
+              <div ref={eventFormRef} style={{ flex: "0 0 350px", position: "sticky", top: "20px", background: "var(--paper)", padding: "20px", borderRadius: "12px", border: "1px solid var(--line)", boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
                   <h2 style={{ fontFamily: "var(--font-en-display)", color: "var(--deep-red)", margin: 0, fontSize: "1.5rem" }}>
                     {editEventId !== null ? "Edit Event" : "Create Event"}
@@ -888,7 +895,7 @@ const Dashboard = () => {
                 )}
               </div>
 
-              <div style={{ flex: "0 0 350px", position: "sticky", top: "20px", background: "var(--paper)", padding: "20px", borderRadius: "12px", border: "1px solid var(--line)", boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
+              <div ref={teamFormRef} style={{ flex: "0 0 350px", position: "sticky", top: "20px", background: "var(--paper)", padding: "20px", borderRadius: "12px", border: "1px solid var(--line)", boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
                   <h2 style={{ fontFamily: "var(--font-en-display)", color: "var(--deep-red)", margin: 0, fontSize: "1.5rem" }}>
                     {editTeamId !== null ? "Edit Member" : "Add Member"}
