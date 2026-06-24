@@ -106,7 +106,7 @@ router.post(
             const newImage = image ? image.trim() : "";
             const newYear = board_year ? board_year.trim() : "2026-27";
             
-            let insertedId;
+            let insertedId = crypto.randomUUID();
             const connection = await pool.getConnection();
             try {
                 await connection.beginTransaction();
@@ -115,12 +115,11 @@ router.post(
                 const [orderRows] = await connection.query("SELECT MAX(sort_order) as maxOrder FROM team FOR UPDATE");
                 const newSortOrder = (orderRows[0].maxOrder || 0) + 1;
 
-                const [result] = await connection.execute(
-                    `INSERT INTO team (name, role, description, image, board_year, sort_order, created_at)
-                     VALUES (?, ?, ?, ?, ?, ?, NOW())`,
-                    [newName, newRole, newDesc, newImage, newYear, newSortOrder]
+                await connection.execute(
+                    `INSERT INTO team (id, name, role, description, image, board_year, sort_order, created_at)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`,
+                    [insertedId, newName, newRole, newDesc, newImage, newYear, newSortOrder]
                 );
-                insertedId = result.insertId;
                 
                 await connection.commit();
             } catch (err) {
