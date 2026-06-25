@@ -1306,7 +1306,7 @@ const Dashboard = () => {
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: "15px", marginBottom: "30px" }}>
                     {gallery.map(img => (
                       <div key={img.id} style={{ border: "1px solid var(--line)", borderRadius: "8px", overflow: "hidden", background: "white", display: "flex", flexDirection: "column" }}>
-                        <img src={img.image_url} alt={img.caption || "Gallery image"} style={{ width: "100%", height: "150px", objectFit: "cover" }} />
+                        <img src={img.image_url} alt={img.caption || "Gallery image"} loading="lazy" style={{ width: "100%", height: "150px", objectFit: "cover" }} />
                         <div style={{ padding: "10px", flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
                           <p style={{ margin: "0 0 10px 0", fontSize: "0.85rem", color: "var(--ink-soft)", overflow: "hidden", textOverflow: "ellipsis", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
                             {img.caption || "No caption"}
