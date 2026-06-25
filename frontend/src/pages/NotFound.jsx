@@ -193,7 +193,7 @@ const NotFound = () => (
           }}
         >
           <span>✾</span>
-          <span className="bn">ঐকতান</span>
+          <span className="bn">ঐক্যতান</span>
           <span>✾</span>
         </div>
       </div>

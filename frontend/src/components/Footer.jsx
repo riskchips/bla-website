@@ -139,7 +139,7 @@ const Footer = () => {
                   className="bn"
                   style={{ color: "var(--ink-soft)", fontSize: 14 }}
                 >
-                  ঐকতান
+                  ঐক্যতান
                 </div>
               </div>
             </div>

@@ -86,7 +86,7 @@ const Nav = () => {
               <span className="glass-nav__brand-en glass-nav__brand-en--full">
                 Bengali Literary Association
               </span>
-              <span className="glass-nav__brand-bn">ঐকতান</span>
+              <span className="glass-nav__brand-bn">ঐক্যতান</span>
             </div>
           </Link>
 
