@@ -629,61 +629,84 @@ class InfiniteGridMenu {
 
     const itemCount = Math.max(1, this.items.length);
     this.atlasSize = Math.ceil(Math.sqrt(itemCount));
+    
+    // Dynamic cell sizing to prevent exceeding MAX_TEXTURE_SIZE (4096)
+    let targetCellSize = 512;
+    if (this.atlasSize * targetCellSize > 4096) {
+        targetCellSize = Math.floor(4096 / this.atlasSize);
+    }
+    const cellSize = Math.max(64, targetCellSize);
+    
     const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    const cellSize = 512;
-
     canvas.width = this.atlasSize * cellSize;
     canvas.height = this.atlasSize * cellSize;
 
-    Promise.all(
-      this.items.map(
-        item =>
-          new Promise(resolve => {
-            const img = new Image();
-            img.crossOrigin = 'anonymous';
-            img.onload = () => resolve(img);
-            img.src = item.image;
-          })
-      )
-    ).then(images => {
-      images.forEach((img, i) => {
-        const x = (i % this.atlasSize) * cellSize;
-        const y = Math.floor(i / this.atlasSize) * cellSize;
-        
-        // Calculate dimensions to maintain natural aspect ratio
-        const aspect = img.width / img.height;
-        let drawWidth = cellSize;
-        let drawHeight = cellSize;
-        let offsetX = 0;
-        let offsetY = 0;
+    // 1. Upload empty transparent texture immediately so UI doesn't freeze
+    gl.bindTexture(gl.TEXTURE_2D, this.tex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
+    gl.generateMipmap(gl.TEXTURE_2D);
 
-        if (aspect > 1) { // Wide image
-          drawHeight = cellSize / aspect;
-          offsetY = (cellSize - drawHeight) / 2;
-        } else { // Tall or square image
-          drawWidth = cellSize * aspect;
-          offsetX = (cellSize - drawWidth) / 2;
-        }
-        
-        ctx.save();
-        ctx.beginPath();
-        // Create rounded rectangle clipping path (30px radius)
-        if (ctx.roundRect) {
-            ctx.roundRect(x + offsetX, y + offsetY, drawWidth, drawHeight, 30);
-        } else {
-            // Fallback for older browsers
-            ctx.rect(x + offsetX, y + offsetY, drawWidth, drawHeight);
-        }
-        ctx.clip();
-        ctx.drawImage(img, x + offsetX, y + offsetY, drawWidth, drawHeight);
-        ctx.restore();
-      });
+    // 2. Load images sequentially and patch the GPU texture progressively
+    const loadImagesSequentially = async () => {
+        // We use a small temporary canvas to draw each cell, then push just that cell to GPU
+        const cellCanvas = document.createElement('canvas');
+        cellCanvas.width = cellSize;
+        cellCanvas.height = cellSize;
+        const cellCtx = cellCanvas.getContext('2d');
 
-      gl.bindTexture(gl.TEXTURE_2D, this.tex);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
-      gl.generateMipmap(gl.TEXTURE_2D);
-    });
+        for (let i = 0; i < this.items.length; i++) {
+            const item = this.items[i];
+            try {
+                const img = await new Promise((resolve, reject) => {
+                    const image = new Image();
+                    image.crossOrigin = 'anonymous';
+                    image.onload = () => resolve(image);
+                    image.onerror = () => reject();
+                    image.src = item.image;
+                });
+
+                const x = (i % this.atlasSize) * cellSize;
+                const y = Math.floor(i / this.atlasSize) * cellSize;
+                
+                const aspect = img.width / img.height;
+                let drawWidth = cellSize;
+                let drawHeight = cellSize;
+                let offsetX = 0;
+                let offsetY = 0;
+
+                if (aspect > 1) { 
+                  drawHeight = cellSize / aspect;
+                  offsetY = (cellSize - drawHeight) / 2;
+                } else { 
+                  drawWidth = cellSize * aspect;
+                  offsetX = (cellSize - drawWidth) / 2;
+                }
+                
+                cellCtx.clearRect(0, 0, cellSize, cellSize);
+                cellCtx.save();
+                cellCtx.beginPath();
+                if (cellCtx.roundRect) {
+                    const br = Math.max(8, cellSize * 0.06); // scaled border radius
+                    cellCtx.roundRect(offsetX, offsetY, drawWidth, drawHeight, br);
+                } else {
+                    cellCtx.rect(offsetX, offsetY, drawWidth, drawHeight);
+                }
+                cellCtx.clip();
+                cellCtx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+                cellCtx.restore();
+
+                gl.bindTexture(gl.TEXTURE_2D, this.tex);
+                // Upload ONLY the modified cell to the GPU
+                gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, gl.RGBA, gl.UNSIGNED_BYTE, cellCanvas);
+                gl.generateMipmap(gl.TEXTURE_2D);
+
+            } catch (err) {
+                // Image failed to load, skip it gracefully
+            }
+        }
+    };
+
+    loadImagesSequentially();
   }
 
   #initDiscInstances(count) {
