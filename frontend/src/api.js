@@ -26,6 +26,11 @@ export const getBoard = async () => {
   return json(res);
 };
 
+export const getTeam = async () => {
+  const res = await fetch("/api/team", { headers: { Accept: "application/json" } });
+  return json(res);
+};
+
 export const getCategories = async () => {
   const res = await fetch("/api/get/categories", { headers: { Accept: "application/json" } });
   return json(res);

@@ -56,6 +56,18 @@ const Dashboard = () => {
   const [unsavedTeamYears, setUnsavedTeamYears] = useState({});
   const [isUpdatingTeamOrder, setIsUpdatingTeamOrder] = useState(false);
 
+  
+  // Current Team form state
+  const [currentTeam, setCurrentTeam] = useState([]);
+  const [editCurrentTeamId, setEditCurrentTeamId] = useState(null);
+  const [currentTeamName, setCurrentTeamName] = useState("");
+  const [currentTeamRole, setCurrentTeamRole] = useState("");
+  const [currentTeamDesc, setCurrentTeamDesc] = useState("");
+  const [currentTeamImage, setCurrentTeamImage] = useState("");
+  const [currentTeamStatus, setCurrentTeamStatus] = useState(null);
+  const [unsavedCurrentTeamOrder, setUnsavedCurrentTeamOrder] = useState(false);
+  const [isUpdatingCurrentTeamOrder, setIsUpdatingCurrentTeamOrder] = useState(false);
+
   // About form state
   const [aboutContent, setAboutContent] = useState("");
   const [aboutStatus, setAboutStatus] = useState(null);
@@ -132,6 +144,14 @@ const Dashboard = () => {
       .catch(console.error);
   };
 
+  
+  const fetchCurrentTeam = () => {
+    fetch("/api/team", { headers: { "Authorization": token } })
+      .then(res => res.json())
+      .then(data => { if(data?.success) setCurrentTeam(data.team); })
+      .catch(console.error);
+  };
+
   const fetchAbout = () => {
     fetch("/api/about", { headers: { "Authorization": token } })
       .then(res => res.json())
@@ -155,6 +175,7 @@ const Dashboard = () => {
     else if (activeTab === "help") fetchGrievances();
     else if (activeTab === "notify") fetchNotifications();
     else if (activeTab === "team") fetchTeam();
+    else if (activeTab === "current_team") fetchCurrentTeam();
     else if (activeTab === "categories") fetchCategories();
     else if (activeTab === "about") fetchAbout();
     else if (activeTab === "words") fetchWords();
@@ -467,6 +488,101 @@ const Dashboard = () => {
     }
   };
 
+  
+  const deleteCurrentTeamMember = async (id) => {
+    if (!window.confirm("Are you sure you want to remove this team member?")) return;
+    try {
+      const res = await fetch(`/api/delete/team/${id}`, {
+        method: "DELETE",
+        headers: { "Authorization": token }
+      });
+      const data = await res.json();
+      if (data.success) {
+        fetchCurrentTeam();
+        setEditCurrentTeamId(null);
+        setCurrentTeamName(""); setCurrentTeamRole(""); setCurrentTeamDesc(""); setCurrentTeamImage("");
+      } else {
+        alert(data.message || "Failed to delete");
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Error deleting team member");
+    }
+  };
+
+  const moveCurrentTeam = (index, direction) => {
+    const newTeam = [...currentTeam];
+    if (direction === "up" && index > 0) {
+      [newTeam[index - 1], newTeam[index]] = [newTeam[index], newTeam[index - 1]];
+    } else if (direction === "down" && index < newTeam.length - 1) {
+      [newTeam[index + 1], newTeam[index]] = [newTeam[index], newTeam[index + 1]];
+    } else {
+      return;
+    }
+    
+    newTeam.forEach((m, i) => { m.sort_order = i; });
+    setCurrentTeam(newTeam);
+    setUnsavedCurrentTeamOrder(true);
+  };
+
+  const saveCurrentTeamOrder = async () => {
+    setIsUpdatingCurrentTeamOrder(true);
+    try {
+      const orders = currentTeam.map(m => ({ id: m.id, sort_order: m.sort_order }));
+      const res = await fetch("/api/update/team/order", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", "Authorization": token },
+        body: JSON.stringify({ orders })
+      });
+      const data = await res.json();
+      if(data.success){
+        setUnsavedCurrentTeamOrder(false);
+      } else {
+        alert(data.message || "Failed to save order");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Error saving order");
+    }
+    setIsUpdatingCurrentTeamOrder(false);
+  };
+
+  const handleCurrentTeamSubmit = async (e) => {
+    e.preventDefault();
+    setCurrentTeamStatus("Saving...");
+    try {
+      const isEdit = !!editCurrentTeamId;
+      const url = isEdit ? `/api/update/team/${editCurrentTeamId}` : "/api/create/team";
+      const method = isEdit ? "PUT" : "POST";
+      const res = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": token
+        },
+        body: JSON.stringify({
+          name: currentTeamName,
+          role: currentTeamRole,
+          description: currentTeamDesc,
+          image: currentTeamImage
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setCurrentTeamStatus(`Team member ${isEdit ? "updated" : "added"} successfully!`);
+        setCurrentTeamName(""); setCurrentTeamRole(""); setCurrentTeamDesc(""); setCurrentTeamImage("");
+        setEditCurrentTeamId(null);
+        fetchCurrentTeam();
+        setTimeout(() => setCurrentTeamStatus(null), 3000);
+      } else {
+        setCurrentTeamStatus(data.message || "Failed to save team member.");
+      }
+    } catch (error) {
+      console.error(error);
+      setCurrentTeamStatus("Error saving team member.");
+    }
+  };
+
   const submitTeam = async (e) => {
     e.preventDefault();
     setTeamStatus("Submitting...");
@@ -550,6 +666,7 @@ const Dashboard = () => {
     { id: "categories", label: "Event Categories" },
     { id: "events", label: "Events" },
     { id: "team", label: "Board Management" },
+      { id: "current_team", label: "Team Management" },
     { id: "about", label: "About Page" },
     { id: "words", label: "Word of the Day" }
   ];
@@ -866,6 +983,125 @@ const Dashboard = () => {
                   </div>
                   {eventStatus && <p style={{ color: "var(--terracotta)" }}>{eventStatus}</p>}
                   <button type="submit" className="btn cursor-target">{editEventId !== null ? "Update Event" : "Create Event"}</button>
+                </form>
+              </div>
+            </div>
+          )}
+
+                              {activeTab === "current_team" && (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "40px", alignItems: "flex-start" }}>
+              <div style={{ flex: "1 1 400px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "15px" }}>
+                  <h2 style={{ fontFamily: "var(--font-en-display)", color: "var(--deep-red)", margin: 0 }}>Team Management</h2>
+                  {unsavedCurrentTeamOrder && (
+                    <button onClick={saveCurrentTeamOrder} disabled={isUpdatingCurrentTeamOrder} className="btn cursor-target" style={{ padding: "6px 12px", fontSize: "0.85rem" }}>
+                      {isUpdatingCurrentTeamOrder ? "SAVING..." : "SAVE ORDER"}
+                    </button>
+                  )}
+                </div>
+                <p style={{ fontSize: "0.9rem", color: "var(--ink-soft)", marginBottom: "20px" }}>Use the Up/Down buttons to reorder members within the team.</p>
+                {currentTeam.length === 0 ? <p>No team members found.</p> : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "20px", marginBottom: "30px" }}>
+                    <div style={{ border: "1px solid var(--line)", padding: "15px", borderRadius: "12px", background: "var(--paper)" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--line)", paddingBottom: "10px", marginBottom: "15px" }}>
+                        <h3 style={{ margin: 0 }}>Current Team</h3>
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                        {currentTeam.map((member, index) => (
+                          <div 
+                            key={member.id} 
+                            style={{ 
+                              border: "1px solid #ddd", 
+                              padding: "10px", 
+                              borderRadius: "8px", 
+                              backgroundColor: "white"
+                            }}
+                          >
+                            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "5px" }}>
+                              <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                                <button 
+                                  onClick={() => moveCurrentTeam(index, "up")} 
+                                  disabled={index === 0}
+                                  style={{ 
+                                    background: index === 0 ? "#f5f5f5" : "#e0e0e0", 
+                                    border: "none", 
+                                    borderRadius: "4px", 
+                                    cursor: index === 0 ? "not-allowed" : "pointer", 
+                                    padding: "4px 10px", 
+                                    fontSize: "0.8rem", 
+                                    color: index === 0 ? "#ccc" : "#333"
+                                  }}
+                                >▲</button>
+                                <button 
+                                  onClick={() => moveCurrentTeam(index, "down")} 
+                                  disabled={index === currentTeam.length - 1}
+                                  style={{ 
+                                    background: index === currentTeam.length - 1 ? "#f5f5f5" : "#e0e0e0", 
+                                    border: "none", 
+                                    borderRadius: "4px", 
+                                    cursor: index === currentTeam.length - 1 ? "not-allowed" : "pointer", 
+                                    padding: "4px 10px", 
+                                    fontSize: "0.8rem", 
+                                    color: index === currentTeam.length - 1 ? "#ccc" : "#333"
+                                  }}
+                                >▼</button>
+                              </div>
+                              <strong style={{ margin: 0 }}>{member.name}</strong> - {member.role}
+                            </div>
+                            <p style={{ margin: "5px 0 0", fontSize: "0.9rem" }}>{member.description}</p>
+                            <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "12px" }}>
+                              <button onClick={() => {
+                                setEditCurrentTeamId(member.id);
+                                setCurrentTeamName(member.name);
+                                setCurrentTeamRole(member.role);
+                                setCurrentTeamDesc(member.description || "");
+                                setCurrentTeamImage(member.image || "");
+                              }} className="btn ghost cursor-target" style={{ padding: "4px 8px", fontSize: "0.8rem" }}>Edit</button>
+                              <button onClick={() => deleteCurrentTeamMember(member.id)} className="btn cursor-target" style={{ background: "var(--deep-red)", padding: "4px 8px", fontSize: "0.8rem", color: "white" }}>Delete</button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div style={{ flex: "0 0 350px", position: "sticky", top: "20px", background: "var(--paper)", padding: "20px", borderRadius: "12px", border: "1px solid var(--line)", boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
+                  <h2 style={{ fontFamily: "var(--font-en-display)", color: "var(--deep-red)", margin: 0, fontSize: "1.5rem" }}>
+                    {editCurrentTeamId !== null ? "Edit Member" : "Add Member"}
+                  </h2>
+                  {editCurrentTeamId !== null && (
+                    <button onClick={() => { setEditCurrentTeamId(null); setCurrentTeamName(""); setCurrentTeamRole(""); setCurrentTeamDesc(""); setCurrentTeamImage(""); }} className="btn ghost cursor-target" style={{ padding: "4px 8px", fontSize: "0.8rem" }}>Cancel</button>
+                  )}
+                </div>
+                <form onSubmit={handleCurrentTeamSubmit} style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
+                  <div className="field">
+                    <label className="label">Name</label>
+                    <input className="input" value={currentTeamName} onChange={e => setCurrentTeamName(e.target.value)} required />
+                  </div>
+                  <div className="field">
+                    <label className="label">Role</label>
+                    <input className="input" value={currentTeamRole} onChange={e => setCurrentTeamRole(e.target.value)} required />
+                  </div>
+                  <div className="field">
+                    <label className="label">Description</label>
+                    <textarea className="input" value={currentTeamDesc} onChange={e => setCurrentTeamDesc(e.target.value)} />
+                  </div>
+                  <div className="field">
+                    <label className="label">Image URL</label>
+                    <div style={{ display: 'flex', gap: '10px', flexDirection: 'column' }}>
+                      <input className="input" value={currentTeamImage} onChange={e => setCurrentTeamImage(e.target.value)} />
+                      <ImageUploader 
+                        multiple={false} 
+                        buttonText="Upload Profile Picture"
+                        onUploadSuccess={(urls) => setCurrentTeamImage(urls[0])} 
+                      />
+                    </div>
+                  </div>
+                  {currentTeamStatus && <p style={{ color: "var(--terracotta)" }}>{currentTeamStatus}</p>}
+                  <button type="submit" className="btn cursor-target">{editCurrentTeamId !== null ? "Update Member" : "Add Member"}</button>
                 </form>
               </div>
             </div>

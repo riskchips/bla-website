@@ -77,3 +77,13 @@ CREATE TABLE word_of_the_day (
     pronunciation TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+-- Create current_team table
+CREATE TABLE current_team (
+    id VARCHAR(36) PRIMARY KEY,
+    name TEXT NOT NULL,
+    role TEXT NOT NULL,
+    description TEXT,
+    image TEXT,
+    sort_order INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

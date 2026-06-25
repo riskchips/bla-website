@@ -13,6 +13,7 @@ const Home = React.lazy(() => import('./pages/Home'));
 const About = React.lazy(() => import('./pages/About'));
 const Events = React.lazy(() => import('./pages/Events'));
 const Gallery = React.lazy(() => import('./pages/Gallery'));
+const Team = React.lazy(() => import('./pages/Team'));
 const Board = React.lazy(() => import('./pages/Board'));
 const Contact = React.lazy(() => import('./pages/Contact'));
 const Grievance = React.lazy(() => import('./pages/Grievance'));
@@ -55,6 +56,7 @@ const App = () => {
             <Route path="/events" element={<Events />} />
             <Route path="/gallery" element={<Gallery />} />
             <Route path="/board" element={<Board />} />
+        <Route path="/team" element={<Team />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/grievance" element={<Grievance />} />
             <Route path="/terms" element={<Terms />} />
