@@ -1311,7 +1311,7 @@ const Dashboard = () => {
                           <img src={img.image_url} alt={img.caption || "Gallery image"} loading="lazy" style={{ width: "100%", height: "150px", objectFit: "cover" }} />
                         ) : (
                           <div style={{ width: "100%", height: "150px", background: "var(--paper)", display: "flex", alignItems: "center", justifyContent: "center", borderBottom: "1px solid var(--line)" }}>
-                            <button onClick={() => setViewingImages(prev => ({...prev, [img.id]: true}))} className="btn cursor-target" style={{ fontSize: "0.8rem", padding: "6px 12px", background: "var(--forest)", color: "white" }}>View Image</button>
+                            <button onClick={() => setViewingImages(prev => ({...prev, [img.id]: true}))} className="btn cursor-target" style={{ fontSize: "0.8rem", padding: "6px 12px", background: "transparent", color: "var(--deep-red)", border: "1px solid var(--deep-red)" }}>View Image</button>
                           </div>
                         )}
                         <div style={{ padding: "10px", flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
