@@ -80,6 +80,11 @@ const Dashboard = () => {
 
   // Words State
   const [words, setWords] = useState([]);
+  const [gallery, setGallery] = useState([]);
+  const [galleryImageUrls, setGalleryImageUrls] = useState([]);
+  const [galleryCaption, setGalleryCaption] = useState("");
+  const [galleryStatus, setGalleryStatus] = useState(null);
+
   const [editWordId, setEditWordId] = useState(null);
   const [wordDate, setWordDate] = useState("");
   const [wordBn, setWordBn] = useState("");
@@ -159,6 +164,14 @@ const Dashboard = () => {
       .catch(console.error);
   };
 
+  
+  const fetchGallery = () => {
+    fetch("/api/gallery", { headers: { "Authorization": token } })
+      .then(res => res.json())
+      .then(data => { if(data?.success) setGallery(data.gallery); })
+      .catch(console.error);
+  };
+
   const fetchWords = () => {
     fetch("/api/admin/words", { headers: { "Authorization": token } })
       .then(res => res.json())
@@ -178,6 +191,7 @@ const Dashboard = () => {
     else if (activeTab === "current_team") fetchCurrentTeam();
     else if (activeTab === "categories") fetchCategories();
     else if (activeTab === "about") fetchAbout();
+    else if (activeTab === "gallery") fetchGallery();
     else if (activeTab === "words") fetchWords();
     else if (activeTab === "events") {
       fetchEvents();
@@ -186,6 +200,49 @@ const Dashboard = () => {
   }, [activeTab, token, navigate]);
 
   // --- Deletion Functions ---
+
+  const deleteGalleryImage = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this image?")) return;
+    try {
+      const res = await fetch(`/api/delete/gallery/${id}`, {
+        method: "DELETE", headers: { "Authorization": token }
+      });
+      const data = await res.json();
+      if(data.success) fetchGallery();
+      else alert(data.message || "Failed to delete");
+    } catch (e) { console.error(e); }
+  };
+
+  const submitGallery = async (e) => {
+    e.preventDefault();
+    if (galleryImageUrls.length === 0) {
+      setGalleryStatus("Please upload at least one image.");
+      return;
+    }
+    setGalleryStatus("Saving...");
+    try {
+      const images = galleryImageUrls.map(url => ({ image_url: url, caption: galleryCaption }));
+      const res = await fetch("/api/create/gallery", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": token },
+        body: JSON.stringify({ images })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setGalleryStatus("Images uploaded successfully!");
+        setGalleryImageUrls([]);
+        setGalleryCaption("");
+        fetchGallery();
+        setTimeout(() => setGalleryStatus(null), 3000);
+      } else {
+        setGalleryStatus(data.message || "Failed to upload.");
+      }
+    } catch (error) {
+      console.error(error);
+      setGalleryStatus("Error uploading images.");
+    }
+  };
+
   const deleteContact = async (id) => {
     if (!window.confirm("Are you sure you want to delete this contact?")) return;
     try {
@@ -666,6 +723,7 @@ const Dashboard = () => {
     { id: "categories", label: "Event Categories" },
     { id: "events", label: "Events" },
     { id: "team", label: "Board Management" },
+      { id: "gallery", label: "Gallery Management" },
       { id: "current_team", label: "Team Management" },
     { id: "about", label: "About Page" },
     { id: "words", label: "Word of the Day" }
@@ -1231,6 +1289,66 @@ const Dashboard = () => {
                   </div>
                   {teamStatus && <p style={{ color: "var(--terracotta)" }}>{teamStatus}</p>}
                   <button type="submit" className="btn cursor-target">{editTeamId !== null ? "Update Member" : "Add Member"}</button>
+                </form>
+              </div>
+            </div>
+          )}
+
+          
+          {activeTab === "gallery" && (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "40px", alignItems: "flex-start" }}>
+              <div style={{ flex: "1 1 400px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "15px" }}>
+                  <h2 style={{ fontFamily: "var(--font-en-display)", color: "var(--deep-red)", margin: 0 }}>Gallery Management</h2>
+                </div>
+                <p style={{ fontSize: "0.9rem", color: "var(--ink-soft)", marginBottom: "20px" }}>Manage images displayed on the public gallery page.</p>
+                {gallery.length === 0 ? <p>No images found in the gallery.</p> : (
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: "15px", marginBottom: "30px" }}>
+                    {gallery.map(img => (
+                      <div key={img.id} style={{ border: "1px solid var(--line)", borderRadius: "8px", overflow: "hidden", background: "white", display: "flex", flexDirection: "column" }}>
+                        <img src={img.image_url} alt={img.caption || "Gallery image"} style={{ width: "100%", height: "150px", objectFit: "cover" }} />
+                        <div style={{ padding: "10px", flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                          <p style={{ margin: "0 0 10px 0", fontSize: "0.85rem", color: "var(--ink-soft)", overflow: "hidden", textOverflow: "ellipsis", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
+                            {img.caption || "No caption"}
+                          </p>
+                          <button onClick={() => deleteGalleryImage(img.id)} className="btn cursor-target" style={{ background: "var(--deep-red)", padding: "4px 8px", fontSize: "0.8rem", color: "white", width: "100%" }}>Delete</button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div style={{ flex: "0 0 350px", position: "sticky", top: "20px", background: "var(--paper)", padding: "20px", borderRadius: "12px", border: "1px solid var(--line)", boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
+                  <h2 style={{ fontFamily: "var(--font-en-display)", color: "var(--deep-red)", margin: 0, fontSize: "1.5rem" }}>
+                    Add Images
+                  </h2>
+                </div>
+                <form onSubmit={submitGallery} style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
+                  <div className="field">
+                    <label className="label">Caption (applied to all uploaded images)</label>
+                    <input className="input" value={galleryCaption} onChange={e => setGalleryCaption(e.target.value)} placeholder="Optional caption" />
+                  </div>
+                  <div className="field">
+                    <label className="label">Upload Images</label>
+                    <div style={{ display: 'flex', gap: '10px', flexDirection: 'column' }}>
+                      <ImageUploader 
+                        multiple={true} 
+                        buttonText="Select Images"
+                        onUploadSuccess={(urls) => {
+                          setGalleryImageUrls(prev => [...prev, ...urls]);
+                        }} 
+                      />
+                      {galleryImageUrls.length > 0 && (
+                        <div style={{ fontSize: "0.85rem", color: "var(--forest)" }}>
+                          {galleryImageUrls.length} image(s) ready to upload.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  {galleryStatus && <p style={{ color: "var(--terracotta)", fontSize: "0.9rem" }}>{galleryStatus}</p>}
+                  <button type="submit" className="btn primary cursor-target" disabled={galleryImageUrls.length === 0}>Upload to Gallery</button>
                 </form>
               </div>
             </div>

@@ -15,6 +15,7 @@ const eventRoutes = require("./routes/eventRoutes")
 const adminRoutes = require("./routes/adminRoutes")
 const aboutRoutes = require("./routes/aboutRoutes")
 const wordRoutes = require("./routes/wordRoutes")
+const galleryRoutes = require("./routes/galleryRoutes")
 const teamRoutes = require("./routes/teamRoutes")
 const { staticLimiter, adminLimiter } = require("./middleware/rateLimits")
 const adminAuth = require("./middleware/adminAuth")
@@ -110,6 +111,7 @@ app.use("/api", adminRoutes)
 app.use("/api", aboutRoutes)
 app.use("/api", wordRoutes)
 app.use("/api", teamRoutes)
+app.use("/api", galleryRoutes)
 
 app.get("/api/terms", staticLimiter, async (req, res) => {
     try {

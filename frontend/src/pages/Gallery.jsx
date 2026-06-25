@@ -3,7 +3,7 @@ import PageTransition from "../components/PageTransition";
 import Ornament from "../components/Ornament";
 import Lightbox from "../components/Lightbox";
 import Skeleton from "../components/Skeleton";
-import { getEvents } from "../api";
+import { getGallery } from "../api";
 import useScrollReveal from "../hooks/useScrollReveal";
 import InfiniteMenu from "../components/InfiniteMenu";
 
@@ -23,31 +23,25 @@ const ScrollReveal = ({ children, className = "", delay = 0 }) => {
 
 /* ─── Main Gallery Page ─── */
 const Gallery = () => {
-  const [events, setEvents] = useState(null);
+  const [galleryItems, setGalleryItems] = useState(null);
   const [err, setErr] = useState(null);
   const [lightbox, setLightbox] = useState(null);
 
   useEffect(() => {
-    getEvents()
-      .then((r) => setEvents(r.events || []))
+    getGallery()
+      .then((r) => setGalleryItems(r.gallery || []))
       .catch((e) => setErr(e.message));
   }, []);
 
-  const images = useMemo(() => {
-    if (!events) return [];
-    return events.flatMap((ev) =>
-      (ev.gallery || []).map((url) => ({ url, caption: ev.name }))
-    );
-  }, [events]);
-
   const menuItems = useMemo(() => {
-    return images.map(img => ({
-      image: img.url,
-      link: img.url, // Could be used to open lightbox in future or link elsewhere
-      title: img.caption,
+    if (!galleryItems) return [];
+    return galleryItems.map(img => ({
+      image: img.image_url,
+      link: img.image_url,
+      title: img.caption || '',
       description: ''
     }));
-  }, [images]);
+  }, [galleryItems]);
 
   return (
     <PageTransition>
@@ -91,7 +85,7 @@ const Gallery = () => {
           {err && <div className="alert error">{err}</div>}
 
           {/* ── Loading ── */}
-          {events === null && !err && (
+          {galleryItems === null && !err && (
             <div className="grid grid-3">
               {Array.from({ length: 6 }).map((_, i) => (
                 <Skeleton key={i} height={220} />
@@ -100,12 +94,12 @@ const Gallery = () => {
           )}
 
           {/* ── Empty ── */}
-          {events && images.length === 0 && (
+          {galleryItems && menuItems.length === 0 && (
             <div className="empty">No photos yet.</div>
           )}
 
           {/* ── Infinite Menu Gallery ── */}
-          {images.length > 0 && (
+          {menuItems.length > 0 && (
             <div style={{ height: '600px', position: 'relative', marginTop: '40px' }}>
               <InfiniteMenu items={menuItems} scale={1.0} />
             </div>

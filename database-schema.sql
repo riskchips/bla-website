@@ -87,3 +87,11 @@ CREATE TABLE current_team (
     sort_order INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Create gallery table
+CREATE TABLE gallery (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    image_url TEXT NOT NULL,
+    caption TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

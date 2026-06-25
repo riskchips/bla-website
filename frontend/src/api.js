@@ -41,6 +41,11 @@ export const getEvents = async () => {
   return json(res);
 };
 
+export const getGallery = async () => {
+  const res = await fetch("/api/gallery", { headers: { Accept: "application/json" } });
+  return json(res);
+};
+
 export const submitContact = async (payload) => {
   const res = await fetch("/api/contact", {
     method: "POST",

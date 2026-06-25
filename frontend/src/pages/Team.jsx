@@ -120,6 +120,7 @@ const TeamCard = ({ member }) => {
             style={{
               transition: "transform 0.5s cubic-bezier(0.22,1,0.36,1)",
               transform: hovered ? "scale(1.06)" : "scale(1)",
+              objectFit: "cover"
             }}
           />
           {/* Gold shimmer overlay on hover */}
