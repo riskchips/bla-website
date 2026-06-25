@@ -84,6 +84,7 @@ const Dashboard = () => {
   const [galleryImageUrls, setGalleryImageUrls] = useState([]);
   const [galleryCaption, setGalleryCaption] = useState("");
   const [galleryStatus, setGalleryStatus] = useState(null);
+  const [viewingImages, setViewingImages] = useState({});
 
   const [editWordId, setEditWordId] = useState(null);
   const [wordDate, setWordDate] = useState("");
@@ -1306,7 +1307,13 @@ const Dashboard = () => {
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: "15px", marginBottom: "30px" }}>
                     {gallery.map(img => (
                       <div key={img.id} style={{ border: "1px solid var(--line)", borderRadius: "8px", overflow: "hidden", background: "white", display: "flex", flexDirection: "column" }}>
-                        <img src={img.image_url} alt={img.caption || "Gallery image"} loading="lazy" style={{ width: "100%", height: "150px", objectFit: "cover" }} />
+                        {viewingImages[img.id] ? (
+                          <img src={img.image_url} alt={img.caption || "Gallery image"} loading="lazy" style={{ width: "100%", height: "150px", objectFit: "cover" }} />
+                        ) : (
+                          <div style={{ width: "100%", height: "150px", background: "var(--paper)", display: "flex", alignItems: "center", justifyContent: "center", borderBottom: "1px solid var(--line)" }}>
+                            <button onClick={() => setViewingImages(prev => ({...prev, [img.id]: true}))} className="btn cursor-target" style={{ fontSize: "0.8rem", padding: "6px 12px", background: "var(--forest)", color: "white" }}>View Image</button>
+                          </div>
+                        )}
                         <div style={{ padding: "10px", flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
                           <p style={{ margin: "0 0 10px 0", fontSize: "0.85rem", color: "var(--ink-soft)", overflow: "hidden", textOverflow: "ellipsis", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
                             {img.caption || "No caption"}
