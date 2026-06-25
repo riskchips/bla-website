@@ -69,22 +69,19 @@ void main() {
     vec2 cellSize = vec2(1.0) / vec2(float(cellsPerRow));
     vec2 cellOffset = vec2(float(cellX), float(cellY)) * cellSize;
 
-    ivec2 texSize = textureSize(uTex, 0);
-    float imageAspect = float(texSize.x) / float(texSize.y);
-    float containerAspect = 1.0;
-    
-    float scale = max(imageAspect / containerAspect, 
-                     containerAspect / imageAspect);
-    
+    // Flip Y
     vec2 st = vec2(vUvs.x, 1.0 - vUvs.y);
-    st = (st - 0.5) * scale + 0.5;
     
     st = clamp(st, 0.0, 1.0);
-    
     st = st * cellSize + cellOffset;
     
     outColor = texture(uTex, st);
     outColor.a *= vAlpha;
+    
+    // Discard transparent pixels to prevent depth buffer occlusions
+    if (outColor.a < 0.05) {
+        discard;
+    }
 }
 `;
 
@@ -210,6 +207,34 @@ class IcosahedronGeometry extends Geometry {
     ).addFace(
       0, 11, 5, 0, 5, 1, 0, 1, 7, 0, 7, 10, 0, 10, 11, 1, 5, 9, 5, 11, 4, 11, 10, 2, 10, 7, 6, 7, 1, 8, 3, 9, 4, 3, 4, 2, 3, 2, 6, 3, 6, 8, 3, 8, 9, 4, 9, 5, 2, 4, 11, 6, 2, 10, 8, 6, 7, 9, 8, 1
     );
+  }
+}
+
+
+class PlaneGeometry extends Geometry {
+  constructor(width = 2.5, height = 2.5) {
+    super();
+    const hw = width / 2;
+    const hh = height / 2;
+    
+    this.addVertex(-hw, -hh, 0);
+    this.lastVertex.uv[0] = 0.0;
+    this.lastVertex.uv[1] = 0.0;
+
+    this.addVertex(hw, -hh, 0);
+    this.lastVertex.uv[0] = 1.0;
+    this.lastVertex.uv[1] = 0.0;
+
+    this.addVertex(hw, hh, 0);
+    this.lastVertex.uv[0] = 1.0;
+    this.lastVertex.uv[1] = 1.0;
+
+    this.addVertex(-hw, hh, 0);
+    this.lastVertex.uv[0] = 0.0;
+    this.lastVertex.uv[1] = 1.0;
+
+    this.addFace(0, 1, 2);
+    this.addFace(0, 2, 3);
   }
 }
 
@@ -569,7 +594,7 @@ class InfiniteGridMenu {
       uAtlasSize: gl.getUniformLocation(this.discProgram, 'uAtlasSize')
     };
 
-    this.discGeo = new DiscGeometry(56, 1);
+    this.discGeo = new PlaneGeometry(2.5, 2.5);
     this.discBuffers = this.discGeo.data;
     this.discVAO = makeVertexArray(
       gl,
@@ -625,7 +650,34 @@ class InfiniteGridMenu {
       images.forEach((img, i) => {
         const x = (i % this.atlasSize) * cellSize;
         const y = Math.floor(i / this.atlasSize) * cellSize;
-        ctx.drawImage(img, x, y, cellSize, cellSize);
+        
+        // Calculate dimensions to maintain natural aspect ratio
+        const aspect = img.width / img.height;
+        let drawWidth = cellSize;
+        let drawHeight = cellSize;
+        let offsetX = 0;
+        let offsetY = 0;
+
+        if (aspect > 1) { // Wide image
+          drawHeight = cellSize / aspect;
+          offsetY = (cellSize - drawHeight) / 2;
+        } else { // Tall or square image
+          drawWidth = cellSize * aspect;
+          offsetX = (cellSize - drawWidth) / 2;
+        }
+        
+        ctx.save();
+        ctx.beginPath();
+        // Create rounded rectangle clipping path (30px radius)
+        if (ctx.roundRect) {
+            ctx.roundRect(x + offsetX, y + offsetY, drawWidth, drawHeight, 30);
+        } else {
+            // Fallback for older browsers
+            ctx.rect(x + offsetX, y + offsetY, drawWidth, drawHeight);
+        }
+        ctx.clip();
+        ctx.drawImage(img, x + offsetX, y + offsetY, drawWidth, drawHeight);
+        ctx.restore();
       });
 
       gl.bindTexture(gl.TEXTURE_2D, this.tex);
@@ -693,6 +745,8 @@ class InfiniteGridMenu {
 
     gl.enable(gl.CULL_FACE);
     gl.enable(gl.DEPTH_TEST);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
