@@ -937,7 +937,7 @@ const Dashboard = () => {
                 )}
               </div>
 
-              <div ref={categoryFormRef} style={{ flex: "0 0 350px", position: "sticky", top: "20px", background: "var(--paper)", padding: "20px", borderRadius: "12px", border: "1px solid var(--line)", boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
+              <div ref={categoryFormRef} style={{ flex: "1 1 350px", maxWidth: "100%", boxSizing: "border-box", position: "sticky", top: "20px", background: "var(--paper)", padding: "20px", borderRadius: "12px", border: "1px solid var(--line)", boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
                   <h2 style={{ fontFamily: "var(--font-en-display)", color: "var(--deep-red)", margin: 0, fontSize: "1.5rem" }}>
                     {editCategoryId !== null ? "Edit Category" : "Create Category"}
@@ -984,7 +984,7 @@ const Dashboard = () => {
                 )}
               </div>
 
-              <div ref={eventFormRef} style={{ flex: "0 0 350px", position: "sticky", top: "20px", background: "var(--paper)", padding: "20px", borderRadius: "12px", border: "1px solid var(--line)", boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
+              <div ref={eventFormRef} style={{ flex: "1 1 350px", maxWidth: "100%", boxSizing: "border-box", position: "sticky", top: "20px", background: "var(--paper)", padding: "20px", borderRadius: "12px", border: "1px solid var(--line)", boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
                   <h2 style={{ fontFamily: "var(--font-en-display)", color: "var(--deep-red)", margin: 0, fontSize: "1.5rem" }}>
                     {editEventId !== null ? "Edit Event" : "Create Event"}
@@ -1126,7 +1126,7 @@ const Dashboard = () => {
                 )}
               </div>
 
-              <div style={{ flex: "0 0 350px", position: "sticky", top: "20px", background: "var(--paper)", padding: "20px", borderRadius: "12px", border: "1px solid var(--line)", boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
+              <div style={{ flex: "1 1 350px", maxWidth: "100%", boxSizing: "border-box", position: "sticky", top: "20px", background: "var(--paper)", padding: "20px", borderRadius: "12px", border: "1px solid var(--line)", boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
                   <h2 style={{ fontFamily: "var(--font-en-display)", color: "var(--deep-red)", margin: 0, fontSize: "1.5rem" }}>
                     {editCurrentTeamId !== null ? "Edit Member" : "Add Member"}
@@ -1247,7 +1247,7 @@ const Dashboard = () => {
                 )}
               </div>
 
-              <div ref={teamFormRef} style={{ flex: "0 0 350px", position: "sticky", top: "20px", background: "var(--paper)", padding: "20px", borderRadius: "12px", border: "1px solid var(--line)", boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
+              <div ref={teamFormRef} style={{ flex: "1 1 350px", maxWidth: "100%", boxSizing: "border-box", position: "sticky", top: "20px", background: "var(--paper)", padding: "20px", borderRadius: "12px", border: "1px solid var(--line)", boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
                   <h2 style={{ fontFamily: "var(--font-en-display)", color: "var(--deep-red)", margin: 0, fontSize: "1.5rem" }}>
                     {editTeamId !== null ? "Edit Member" : "Add Member"}
@@ -1326,7 +1326,7 @@ const Dashboard = () => {
                 )}
               </div>
 
-              <div style={{ flex: "0 0 350px", position: "sticky", top: "20px", background: "var(--paper)", padding: "20px", borderRadius: "12px", border: "1px solid var(--line)", boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
+              <div style={{ flex: "1 1 350px", maxWidth: "100%", boxSizing: "border-box", position: "sticky", top: "20px", background: "var(--paper)", padding: "20px", borderRadius: "12px", border: "1px solid var(--line)", boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
                   <h2 style={{ fontFamily: "var(--font-en-display)", color: "var(--deep-red)", margin: 0, fontSize: "1.5rem" }}>
                     Add Images
