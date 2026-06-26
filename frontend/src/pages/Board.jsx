@@ -65,26 +65,28 @@ const NameDecor = () => (
 
 /* ─── Cultural Background Motif ─── */
 const CulturalMotif = () => (
-  <motion.div
-    aria-hidden="true"
-    style={{
-      position: "absolute",
-      right: "-10%",
-      top: "5%",
-      opacity: 0.03,
-      pointerEvents: "none",
-      color: "var(--deep-red)",
-      fontSize: "60vw",
-      lineHeight: 1,
-      zIndex: 0,
-      userSelect: "none"
-    }}
-    animate={{ rotate: 360 }}
-    transition={{ duration: 200, repeat: Infinity, ease: "linear" }}
-  >
-    ✾
-  </motion.div>
+  <>
+    <img src="/assets/flower.png" alt="" className="deco-flower" style={{ top: "2%", left: "auto", right: "-20px", opacity: 0.6, animationDelay: "0s" }} />
+    <img src="/assets/flower2.png" alt="" className="deco-flower" style={{ top: "15%", left: "auto", right: "40px", width: "90px", transform: "rotate(-45deg)", opacity: 0.4, animationDelay: "1.5s" }} />
+    <img src="/assets/flower.png" alt="" className="deco-flower" style={{ top: "35%", left: "-20px", right: "auto", width: "120px", transform: "rotate(30deg)", opacity: 0.5, animationDelay: "2s" }} />
+    <img src="/assets/flower2.png" alt="" className="deco-flower" style={{ top: "55%", left: "40px", right: "auto", width: "80px", transform: "rotate(60deg)", opacity: 0.4, animationDelay: "1s" }} />
+    <img src="/assets/flower.png" alt="" className="deco-flower" style={{ top: "75%", left: "auto", right: "-10px", width: "140px", transform: "rotate(-20deg)", opacity: 0.6, animationDelay: "0.5s" }} />
+    <img src="/assets/flower2.png" alt="" className="deco-flower" style={{ top: "85%", left: "auto", right: "60px", width: "70px", transform: "rotate(120deg)", opacity: 0.5, animationDelay: "2.5s" }} />
+  </>
 );
+
+/* ─── Helper for Bengali Initial ─── */
+const getBengaliInitial = (name) => {
+  if (!name) return "ব";
+  const char = name.trim().charAt(0).toUpperCase();
+  const map = {
+    A: "অ", B: "ব", C: "চ", D: "দ", E: "এ", F: "ফ", G: "গ",
+    H: "হ", I: "ই", J: "জ", K: "ক", L: "ল", M: "ম", N: "ন",
+    O: "ও", P: "প", Q: "ক", R: "র", S: "স", T: "ত", U: "উ",
+    V: "ভ", W: "ও", X: "জ", Y: "য", Z: "জ"
+  };
+  return map[char] || char;
+};
 
 /* ─── Enhanced Team Card ─── */
 const TeamCard = ({ member }) => {
@@ -110,8 +112,8 @@ const TeamCard = ({ member }) => {
         background: "var(--card-bg, #fff)"
       }}
     >
-      {member.image && (
-        <div style={{ overflow: "hidden", position: "relative" }}>
+      <div style={{ overflow: "hidden", position: "relative" }}>
+        {member.image ? (
           <img
             className="photo"
             src={member.image}
@@ -123,20 +125,36 @@ const TeamCard = ({ member }) => {
               objectFit: "cover"
             }}
           />
-          {/* Gold shimmer overlay on hover */}
-          <div
-            aria-hidden="true"
-            style={{
-              position: "absolute",
-              inset: 0,
-              background: "linear-gradient(135deg, rgba(184,137,58,0.12) 0%, transparent 60%)",
-              opacity: hovered ? 1 : 0,
-              transition: "opacity 0.4s ease",
-              pointerEvents: "none",
+        ) : (
+          <div 
+            className="photo" 
+            style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              justifyContent: "center", 
+              background: "var(--paper-dark)", 
+              color: "var(--gold-soft)", 
+              fontSize: "6rem", 
+              fontFamily: "var(--font-bn-display)",
+              opacity: 0.6 
             }}
-          />
-        </div>
-      )}
+          >
+            {getBengaliInitial(member.name)}
+          </div>
+        )}
+        {/* Gold shimmer overlay on hover */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: "linear-gradient(135deg, rgba(184,137,58,0.12) 0%, transparent 60%)",
+            opacity: hovered ? 1 : 0,
+            transition: "opacity 0.4s ease",
+            pointerEvents: "none",
+          }}
+        />
+      </div>
       <div className="meta">
         <h3>{member.name}</h3>
         <NameDecor />
