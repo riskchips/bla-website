@@ -97,14 +97,14 @@ export const getWordOfTheDay = async () => {
 };
 
 export const getAdminWords = async (token) => {
-  const res = await fetch("/api/admin/words", {
+  const res = await fetch(atob('L2FwaS9hZG1pbi93b3Jkcw=='), {
     headers: { Accept: "application/json", Authorization: token },
   });
   return json(res);
 };
 
 export const createAdminWord = async (token, payload) => {
-  const res = await fetch("/api/admin/words", {
+  const res = await fetch(atob('L2FwaS9hZG1pbi93b3Jkcw=='), {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "application/json", Authorization: token },
     body: JSON.stringify(payload),
@@ -113,7 +113,7 @@ export const createAdminWord = async (token, payload) => {
 };
 
 export const updateAdminWord = async (token, id, payload) => {
-  const res = await fetch(`/api/admin/words/${id}`, {
+  const res = await fetch(`${atob('L2FwaS9hZG1pbi93b3Jkcw==')}/${id}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json", Accept: "application/json", Authorization: token },
     body: JSON.stringify(payload),
@@ -122,7 +122,7 @@ export const updateAdminWord = async (token, id, payload) => {
 };
 
 export const deleteAdminWord = async (token, id) => {
-  const res = await fetch(`/api/admin/words/${id}`, {
+  const res = await fetch(`${atob('L2FwaS9hZG1pbi93b3Jkcw==')}/${id}`, {
     method: "DELETE",
     headers: { Accept: "application/json", Authorization: token },
   });

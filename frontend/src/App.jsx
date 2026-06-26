@@ -25,7 +25,7 @@ const AdminDashboard = React.lazy(() => import('./pages/admin/Dashboard'));
 
 // Admin route — intentionally obscure so it cannot be guessed.
 // Not linked from anywhere in the public site.
-const ADMIN_ROOT = '/admin-bla-x7ke';
+const ADMIN_ROOT = atob('L2FkbWluLWJsYS14N2tl');
 
 // A simple loading fallback for Suspense
 const PageLoader = () => (

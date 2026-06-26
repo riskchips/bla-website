@@ -130,21 +130,21 @@ const Dashboard = () => {
   };
 
   const fetchTeam = () => {
-    fetch("/api/board", { headers: { "Authorization": token } })
+    fetch(atob('L2FwaS9ib2FyZA=='), { headers: { "Authorization": token } })
       .then(res => res.json())
       .then(data => { if(data?.success) setTeam(data.team); })
       .catch(console.error);
   };
 
   const fetchCategories = () => {
-    fetch("/api/get/categories", { headers: { "Authorization": token } })
+    fetch(atob('L2FwaS9nZXQvY2F0ZWdvcmllcw=='), { headers: { "Authorization": token } })
       .then(res => res.json())
       .then(data => { if(data?.success) setCategories(data.categories); })
       .catch(console.error);
   };
 
   const fetchEvents = () => {
-    fetch("/api/get/events", { headers: { "Authorization": token } })
+    fetch(atob('L2FwaS9nZXQvZXZlbnRz'), { headers: { "Authorization": token } })
       .then(res => res.json())
       .then(data => { if(data?.success) setEvents(data.events); })
       .catch(console.error);
@@ -152,14 +152,14 @@ const Dashboard = () => {
 
   
   const fetchCurrentTeam = () => {
-    fetch("/api/team", { headers: { "Authorization": token } })
+    fetch(atob('L2FwaS90ZWFt'), { headers: { "Authorization": token } })
       .then(res => res.json())
       .then(data => { if(data?.success) setCurrentTeam(data.team); })
       .catch(console.error);
   };
 
   const fetchAbout = () => {
-    fetch("/api/about", { headers: { "Authorization": token } })
+    fetch(atob('L2FwaS9hYm91dA=='), { headers: { "Authorization": token } })
       .then(res => res.json())
       .then(data => { if(data?.success) setAboutContent(data.content); })
       .catch(console.error);
@@ -167,7 +167,7 @@ const Dashboard = () => {
 
   
   const fetchGallery = () => {
-    fetch("/api/gallery", { headers: { "Authorization": token } })
+    fetch(atob('L2FwaS9nYWxsZXJ5'), { headers: { "Authorization": token } })
       .then(res => res.json())
       .then(data => { if(data?.success) setGallery(data.gallery); })
       .catch(console.error);
@@ -205,7 +205,7 @@ const Dashboard = () => {
   const deleteGalleryImage = async (id) => {
     if (!window.confirm("Are you sure you want to delete this image?")) return;
     try {
-      const res = await fetch(`/api/delete/gallery/${id}`, {
+      const res = await fetch(`${atob('L2FwaS9kZWxldGUvZ2FsbGVyeS8=')}${id}`, {
         method: "DELETE", headers: { "Authorization": token }
       });
       const data = await res.json();
@@ -223,7 +223,7 @@ const Dashboard = () => {
     setGalleryStatus("Saving...");
     try {
       const images = galleryImageUrls.map(url => ({ image_url: url, caption: galleryCaption }));
-      const res = await fetch("/api/create/gallery", {
+      const res = await fetch(atob('L2FwaS9jcmVhdGUvZ2FsbGVyeQ=='), {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": token },
         body: JSON.stringify({ images })
@@ -247,7 +247,7 @@ const Dashboard = () => {
   const deleteContact = async (id) => {
     if (!window.confirm("Are you sure you want to delete this contact?")) return;
     try {
-      const res = await fetch(`/api/delete/contact/${id}`, {
+      const res = await fetch(`${atob('L2FwaS9kZWxldGUvY29udGFjdC8=')}${id}`, {
         method: "DELETE", headers: { "Authorization": token }
       });
       handleApiError(res);
@@ -258,7 +258,7 @@ const Dashboard = () => {
   const deleteHelp = async (id) => {
     if (!window.confirm("Are you sure you want to delete this help request?")) return;
     try {
-      const res = await fetch(`/api/delete/help/${id}`, {
+      const res = await fetch(`${atob('L2FwaS9kZWxldGUvaGVscC8=')}${id}`, {
         method: "DELETE", headers: { "Authorization": token }
       });
       handleApiError(res);
@@ -364,7 +364,7 @@ const Dashboard = () => {
   const deleteCategory = async (id) => {
     if (!window.confirm("Are you sure you want to delete this category?")) return;
     try {
-      const res = await fetch(`/api/delete/category/${id}`, {
+      const res = await fetch(`${atob('L2FwaS9kZWxldGUvY2F0ZWdvcnkv')}${id}`, {
         method: "DELETE", headers: { "Authorization": token }
       });
       handleApiError(res);
@@ -379,7 +379,7 @@ const Dashboard = () => {
   const deleteEvent = async (id) => {
     if (!window.confirm("Are you sure you want to delete this event?")) return;
     try {
-      const res = await fetch(`/api/delete/event/${id}`, {
+      const res = await fetch(`${atob('L2FwaS9kZWxldGUvZXZlbnQv')}${id}`, {
         method: "DELETE", headers: { "Authorization": token }
       });
       handleApiError(res);
@@ -430,7 +430,7 @@ const Dashboard = () => {
     setCategoryStatus("Submitting...");
 
     const isEdit = editCategoryId !== null;
-    const url = isEdit ? `/api/update/category/${editCategoryId}` : "/api/create/category";
+    const url = isEdit ? `/api/update/category/${editCategoryId}` : atob('L2FwaS9jcmVhdGUvY2F0ZWdvcnk=');
     const method = isEdit ? "PUT" : "POST";
 
     try {
@@ -485,7 +485,7 @@ const Dashboard = () => {
     const gallery = eventImages.split(',').map(s => s.trim()).filter(Boolean);
 
     const isEdit = editEventId !== null;
-    const url = isEdit ? `/api/update/event/${editEventId}` : "/api/create/event";
+    const url = isEdit ? `/api/update/event/${editEventId}` : atob('L2FwaS9jcmVhdGUvZXZlbnQ=');
     const method = isEdit ? "PUT" : "POST";
 
     try {
@@ -550,7 +550,7 @@ const Dashboard = () => {
   const deleteCurrentTeamMember = async (id) => {
     if (!window.confirm("Are you sure you want to remove this team member?")) return;
     try {
-      const res = await fetch(`/api/delete/team/${id}`, {
+      const res = await fetch(`${atob('L2FwaS9kZWxldGUvdGVhbS8=')}${id}`, {
         method: "DELETE",
         headers: { "Authorization": token }
       });
@@ -610,7 +610,7 @@ const Dashboard = () => {
     setCurrentTeamStatus("Saving...");
     try {
       const isEdit = !!editCurrentTeamId;
-      const url = isEdit ? `/api/update/team/${editCurrentTeamId}` : "/api/create/team";
+      const url = isEdit ? `/api/update/team/${editCurrentTeamId}` : atob('L2FwaS9jcmVhdGUvdGVhbQ==');
       const method = isEdit ? "PUT" : "POST";
       const res = await fetch(url, {
         method,
