@@ -316,7 +316,7 @@ const Team = () => {
               )}
 
               {team.filter(m => m.category === 'junior').length > 0 && (
-                <CollapsibleSection title="Junior Core">
+                <CollapsibleSection title="Executive Junior Core">
                   <div className="grid grid-3">
                     {team.filter(m => m.category === 'junior').map((m, i) => (
                       <ScrollReveal key={m.id} delay={0.05 * Math.min(i, 6)}>

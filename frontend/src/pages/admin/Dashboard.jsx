@@ -1113,7 +1113,7 @@ const Dashboard = () => {
                             <p style={{ margin: "5px 0 0", fontSize: "0.9rem" }}>{member.description}</p>
                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "12px" }}>
                               <span style={{ fontSize: "0.85rem", background: "#d4a373", color: "#fff", padding: "6px 14px", borderRadius: "100px", fontWeight: "600", fontFamily: "var(--font-en-body)", letterSpacing: "0.02em" }}>
-                                {member.category === 'junior' ? 'Junior Core' : 'Senior Core'}
+                                {member.category === 'junior' ? 'Executive Junior Core' : 'Senior Core'}
                               </span>
                               <div style={{ display: "flex", gap: "8px" }}>
                                 <button onClick={() => {
@@ -1158,7 +1158,7 @@ const Dashboard = () => {
                     <label className="label">Category</label>
                     <select className="input" value={currentTeamCategory} onChange={e => setCurrentTeamCategory(e.target.value)}>
                       <option value="senior">Senior Core</option>
-                      <option value="junior">Junior Core</option>
+                      <option value="junior">Executive Junior Core</option>
                     </select>
                   </div>
                   <div className="field">
