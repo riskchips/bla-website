@@ -157,6 +157,9 @@ const CollapsibleSection = ({ title, children }) => {
 /* ─── Enhanced Team Card ─── */
 const TeamCard = ({ member }) => {
   const [hovered, setHovered] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const isLong = member.description && member.description.length > 130;
 
   return (
     <motion.article
@@ -175,7 +178,10 @@ const TeamCard = ({ member }) => {
         borderColor: hovered ? "var(--gold-soft)" : "var(--line)",
         zIndex: 1,
         position: "relative",
-        background: "var(--card-bg, #fff)"
+        background: "#fff",
+        display: "flex",
+        flexDirection: "column",
+        alignSelf: "flex-start"
       }}
     >
       <div style={{ overflow: "hidden", position: "relative" }}>
@@ -221,11 +227,89 @@ const TeamCard = ({ member }) => {
           }}
         />
       </div>
-      <div className="meta">
+      <div className="meta" style={{ display: "flex", flexDirection: "column" }}>
         <h3>{member.name}</h3>
         <NameDecor />
         <div className="role">{member.role}</div>
-        <p className="desc">{member.description}</p>
+        
+        <motion.div 
+          initial={false}
+          animate={{ height: isExpanded ? "auto" : (isLong ? 120 : "auto") }}
+          transition={{ duration: 0.4, ease: "easeInOut" }}
+          style={{ position: "relative", overflow: "hidden" }}
+        >
+          <p className="desc" style={{ marginBottom: "10px" }}>
+            {member.description}
+          </p>
+          <AnimatePresence>
+            {isLong && !isExpanded && (
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                style={{
+                  position: "absolute",
+                  bottom: 0,
+                  left: 0,
+                  width: "100%",
+                  height: "50px",
+                  background: "linear-gradient(to bottom, rgba(255,255,255,0), #fff 90%)",
+                  pointerEvents: "none"
+                }}
+              />
+            )}
+          </AnimatePresence>
+        </motion.div>
+        
+        {isLong && (
+          <div style={{ display: "flex", justifyContent: "center", marginTop: "4px", paddingBottom: "10px" }}>
+            <button 
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsExpanded(!isExpanded);
+              }}
+              className="cursor-target"
+              style={{
+                background: "none",
+                border: "none",
+                color: "var(--deep-red)",
+                cursor: "pointer",
+                fontFamily: "var(--font-en-display)",
+                fontSize: "1.1rem",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                padding: "8px 16px",
+                transition: "color 0.3s ease, transform 0.3s ease",
+                textDecoration: "none"
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = "var(--gold)";
+                e.currentTarget.style.transform = "translateY(1px)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = "var(--deep-red)";
+                e.currentTarget.style.transform = "translateY(0)";
+              }}
+            >
+              {isExpanded ? "Show less" : "Show more"}
+              <svg 
+                width="14" height="14" viewBox="0 0 24 24" 
+                fill="none" stroke="currentColor" strokeWidth="2.5" 
+                strokeLinecap="round" strokeLinejoin="round" 
+                style={{ 
+                  transform: isExpanded ? "rotate(180deg)" : "none", 
+                  transition: "transform 0.3s ease",
+                  marginTop: isExpanded ? "0" : "2px"
+                }}
+              >
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+          </div>
+        )}
       </div>
     </motion.article>
   );
