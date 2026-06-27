@@ -11,6 +11,7 @@ const Dashboard = () => {
   const categoryFormRef = useRef(null);
   const eventFormRef = useRef(null);
   const teamFormRef = useRef(null);
+  const currentTeamFormRef = useRef(null);
   
   const [contacts, setContacts] = useState([]);
   const [grievances, setGrievances] = useState([]);
@@ -64,6 +65,7 @@ const Dashboard = () => {
   const [currentTeamRole, setCurrentTeamRole] = useState("");
   const [currentTeamDesc, setCurrentTeamDesc] = useState("");
   const [currentTeamImage, setCurrentTeamImage] = useState("");
+  const [currentTeamCategory, setCurrentTeamCategory] = useState("senior");
   const [currentTeamStatus, setCurrentTeamStatus] = useState(null);
   const [unsavedCurrentTeamOrder, setUnsavedCurrentTeamOrder] = useState(false);
   const [isUpdatingCurrentTeamOrder, setIsUpdatingCurrentTeamOrder] = useState(false);
@@ -558,7 +560,7 @@ const Dashboard = () => {
       if (data.success) {
         fetchCurrentTeam();
         setEditCurrentTeamId(null);
-        setCurrentTeamName(""); setCurrentTeamRole(""); setCurrentTeamDesc(""); setCurrentTeamImage("");
+        setCurrentTeamName(""); setCurrentTeamRole(""); setCurrentTeamDesc(""); setCurrentTeamImage(""); setCurrentTeamCategory("senior");
       } else {
         alert(data.message || "Failed to delete");
       }
@@ -622,13 +624,14 @@ const Dashboard = () => {
           name: currentTeamName,
           role: currentTeamRole,
           description: currentTeamDesc,
-          image: currentTeamImage
+          image: currentTeamImage,
+          category: currentTeamCategory
         })
       });
       const data = await res.json();
       if (data.success) {
         setCurrentTeamStatus(`Team member ${isEdit ? "updated" : "added"} successfully!`);
-        setCurrentTeamName(""); setCurrentTeamRole(""); setCurrentTeamDesc(""); setCurrentTeamImage("");
+        setCurrentTeamName(""); setCurrentTeamRole(""); setCurrentTeamDesc(""); setCurrentTeamImage(""); setCurrentTeamCategory("senior");
         setEditCurrentTeamId(null);
         fetchCurrentTeam();
         setTimeout(() => setCurrentTeamStatus(null), 3000);
@@ -1108,15 +1111,22 @@ const Dashboard = () => {
                               <strong style={{ margin: 0 }}>{member.name}</strong> - {member.role}
                             </div>
                             <p style={{ margin: "5px 0 0", fontSize: "0.9rem" }}>{member.description}</p>
-                            <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "12px" }}>
-                              <button onClick={() => {
-                                setEditCurrentTeamId(member.id);
-                                setCurrentTeamName(member.name);
-                                setCurrentTeamRole(member.role);
-                                setCurrentTeamDesc(member.description || "");
-                                setCurrentTeamImage(member.image || "");
-                              }} className="btn ghost cursor-target" style={{ padding: "4px 8px", fontSize: "0.8rem" }}>Edit</button>
-                              <button onClick={() => deleteCurrentTeamMember(member.id)} className="btn cursor-target" style={{ background: "var(--deep-red)", padding: "4px 8px", fontSize: "0.8rem", color: "white" }}>Delete</button>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "12px" }}>
+                              <span style={{ fontSize: "0.85rem", background: "#d4a373", color: "#fff", padding: "6px 14px", borderRadius: "100px", fontWeight: "600", fontFamily: "var(--font-en-body)", letterSpacing: "0.02em" }}>
+                                {member.category === 'junior' ? 'Junior Core' : 'Senior Core'}
+                              </span>
+                              <div style={{ display: "flex", gap: "8px" }}>
+                                <button onClick={() => {
+                                  setEditCurrentTeamId(member.id);
+                                  setCurrentTeamName(member.name);
+                                  setCurrentTeamRole(member.role);
+                                  setCurrentTeamDesc(member.description || "");
+                                  setCurrentTeamImage(member.image || "");
+                                  setCurrentTeamCategory(member.category || "senior");
+                                  setTimeout(() => currentTeamFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+                                }} className="btn ghost cursor-target" style={{ padding: "6px 16px", fontSize: "0.85rem", fontWeight: "bold", fontFamily: "var(--font-en-display)", textTransform: "uppercase" }}>Edit</button>
+                                <button onClick={() => deleteCurrentTeamMember(member.id)} className="btn cursor-target" style={{ background: "var(--deep-red)", padding: "6px 16px", fontSize: "0.85rem", color: "white", fontWeight: "bold", fontFamily: "var(--font-en-display)", textTransform: "uppercase" }}>Delete</button>
+                              </div>
                             </div>
                           </div>
                         ))}
@@ -1126,13 +1136,13 @@ const Dashboard = () => {
                 )}
               </div>
 
-              <div style={{ flex: "1 1 350px", maxWidth: "100%", boxSizing: "border-box", position: "sticky", top: "20px", background: "var(--paper)", padding: "20px", borderRadius: "12px", border: "1px solid var(--line)", boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
+              <div ref={currentTeamFormRef} style={{ flex: "1 1 350px", maxWidth: "100%", boxSizing: "border-box", position: "sticky", top: "20px", background: "var(--paper)", padding: "20px", borderRadius: "12px", border: "1px solid var(--line)", boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
                   <h2 style={{ fontFamily: "var(--font-en-display)", color: "var(--deep-red)", margin: 0, fontSize: "1.5rem" }}>
                     {editCurrentTeamId !== null ? "Edit Member" : "Add Member"}
                   </h2>
                   {editCurrentTeamId !== null && (
-                    <button onClick={() => { setEditCurrentTeamId(null); setCurrentTeamName(""); setCurrentTeamRole(""); setCurrentTeamDesc(""); setCurrentTeamImage(""); }} className="btn ghost cursor-target" style={{ padding: "4px 8px", fontSize: "0.8rem" }}>Cancel</button>
+                    <button onClick={() => { setEditCurrentTeamId(null); setCurrentTeamName(""); setCurrentTeamRole(""); setCurrentTeamDesc(""); setCurrentTeamImage(""); setCurrentTeamCategory("senior"); }} className="btn ghost cursor-target" style={{ padding: "4px 8px", fontSize: "0.8rem" }}>Cancel</button>
                   )}
                 </div>
                 <form onSubmit={handleCurrentTeamSubmit} style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
@@ -1143,6 +1153,13 @@ const Dashboard = () => {
                   <div className="field">
                     <label className="label">Role</label>
                     <input className="input" value={currentTeamRole} onChange={e => setCurrentTeamRole(e.target.value)} required />
+                  </div>
+                  <div className="field">
+                    <label className="label">Category</label>
+                    <select className="input" value={currentTeamCategory} onChange={e => setCurrentTeamCategory(e.target.value)}>
+                      <option value="senior">Senior Core</option>
+                      <option value="junior">Junior Core</option>
+                    </select>
                   </div>
                   <div className="field">
                     <label className="label">Description</label>

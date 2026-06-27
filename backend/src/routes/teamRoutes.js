@@ -40,7 +40,7 @@ router.post(
     adminLimiter,
     async (req, res) => {
         try {
-            const { name, role, description, image } = req.body
+            const { name, role, description, image, category } = req.body
 
             if (!name || !role) {
                 return res.status(400).json({
@@ -53,6 +53,7 @@ router.post(
             const newRole = role.trim();
             const newDesc = description ? description.trim() : "";
             const newImage = image ? image.trim() : "";
+            const newCategory = category ? category.trim() : "senior";
             
             let insertedId = crypto.randomUUID();
             const connection = await pool.getConnection();
@@ -63,9 +64,9 @@ router.post(
                 const newSortOrder = (orderRows[0].maxOrder || 0) + 1;
 
                 await connection.execute(
-                    `INSERT INTO current_team (id, name, role, description, image, sort_order, created_at)
-                     VALUES (?, ?, ?, ?, ?, ?, NOW())`,
-                    [insertedId, newName, newRole, newDesc, newImage, newSortOrder]
+                    `INSERT INTO current_team (id, name, role, description, image, category, sort_order, created_at)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`,
+                    [insertedId, newName, newRole, newDesc, newImage, newCategory, newSortOrder]
                 );
                 
                 await connection.commit();
@@ -156,7 +157,7 @@ router.put(
     async (req, res) => {
         try {
             const { id } = req.params;
-            const { name, role, description, image } = req.body;
+            const { name, role, description, image, category } = req.body;
 
             if (!name || !role) {
                 return res.status(400).json({
@@ -169,12 +170,13 @@ router.put(
             const updateRole = role.trim();
             const updateDesc = description ? description.trim() : "";
             const updateImage = image ? image.trim() : "";
+            const updateCategory = category ? category.trim() : "senior";
 
             await pool.execute(
                 `UPDATE current_team 
-                 SET name = ?, role = ?, description = ?, image = ?
+                 SET name = ?, role = ?, description = ?, image = ?, category = ?
                  WHERE id = ?`,
-                [updateName, updateRole, updateDesc, updateImage, id]
+                [updateName, updateRole, updateDesc, updateImage, updateCategory, id]
             )
 
             const [rows] = await pool.query("SELECT * FROM current_team WHERE id = ?", [id]);

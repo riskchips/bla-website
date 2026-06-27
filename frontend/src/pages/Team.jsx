@@ -4,7 +4,7 @@ import Ornament from "../components/Ornament";
 import { SkeletonCard } from "../components/Skeleton";
 import { getTeam } from "../api";
 import useScrollReveal from "../hooks/useScrollReveal";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 /* ─── Scroll-Reveal wrapper ─── */
 const ScrollReveal = ({ children, className = "", delay = 0 }) => {
@@ -86,6 +86,72 @@ const getBengaliInitial = (name) => {
     V: "ভ", W: "ও", X: "জ", Y: "য", Z: "জ"
   };
   return map[char] || char;
+};
+
+/* ─── Collapsible Section ─── */
+const CollapsibleSection = ({ title, children }) => {
+  const [isOpen, setIsOpen] = useState(true);
+
+  return (
+    <motion.div 
+      layout
+      style={{ 
+        marginBottom: "20px",
+        border: "1px solid var(--line)", 
+        borderRadius: "12px", 
+        overflow: "hidden", 
+        background: "rgba(245, 236, 217, 0.6)",
+        backdropFilter: "blur(10px)"
+      }}
+    >
+      <button 
+        onClick={() => setIsOpen(!isOpen)} 
+        className="cursor-target"
+        style={{
+          width: "100%", 
+          padding: "24px", 
+          display: "flex", 
+          justifyContent: "space-between", 
+          alignItems: "center",
+          background: isOpen ? "rgba(184,137,58,0.15)" : "transparent",
+          border: "none",
+          borderBottom: isOpen ? "1px solid var(--line)" : "none",
+          fontFamily: "var(--font-en-display)",
+          fontSize: "1.5rem",
+          color: "var(--deep-red)",
+          textAlign: "left",
+          transition: "background 0.3s ease"
+        }}
+      >
+        <span>{title}</span>
+        <motion.span 
+          animate={{ rotate: isOpen ? 180 : 0 }} 
+          transition={{ type: "spring", stiffness: 200, damping: 15 }}
+          style={{ fontSize: "1.2rem", display: "inline-block", color: "var(--deep-red)" }}
+        >
+          ▼
+        </motion.span>
+      </button>
+      <AnimatePresence initial={false}>
+        {isOpen && (
+          <motion.div
+            initial="collapsed"
+            animate="open"
+            exit="collapsed"
+            variants={{
+              open: { opacity: 1, height: "auto" },
+              collapsed: { opacity: 0, height: 0 }
+            }}
+            transition={{ duration: 0.5, ease: [0.04, 0.62, 0.23, 0.98] }}
+          >
+            <div style={{ padding: "24px" }}>
+              {children}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
 };
 
 /* ─── Enhanced Team Card ─── */
@@ -236,12 +302,30 @@ const Team = () => {
 
           {/* ── Team Grid ── */}
           {team && team.length > 0 && (
-            <div className="grid grid-3" style={{ marginTop: "40px" }}>
-              {team.map((m, i) => (
-                <ScrollReveal key={m.id} delay={0.05 * Math.min(i, 6)}>
-                  <TeamCard member={m} />
-                </ScrollReveal>
-              ))}
+            <div style={{ display: "flex", flexDirection: "column", gap: "20px", marginTop: "40px" }}>
+              {team.filter(m => !m.category || m.category === 'senior').length > 0 && (
+                <CollapsibleSection title="Senior Core">
+                  <div className="grid grid-3">
+                    {team.filter(m => !m.category || m.category === 'senior').map((m, i) => (
+                      <ScrollReveal key={m.id} delay={0.05 * Math.min(i, 6)}>
+                        <TeamCard member={m} />
+                      </ScrollReveal>
+                    ))}
+                  </div>
+                </CollapsibleSection>
+              )}
+
+              {team.filter(m => m.category === 'junior').length > 0 && (
+                <CollapsibleSection title="Junior Core">
+                  <div className="grid grid-3">
+                    {team.filter(m => m.category === 'junior').map((m, i) => (
+                      <ScrollReveal key={m.id} delay={0.05 * Math.min(i, 6)}>
+                        <TeamCard member={m} />
+                      </ScrollReveal>
+                    ))}
+                  </div>
+                </CollapsibleSection>
+              )}
             </div>
           )}
         </div>
