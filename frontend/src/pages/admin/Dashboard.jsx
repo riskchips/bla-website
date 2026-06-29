@@ -53,6 +53,10 @@ const Dashboard = () => {
   const [teamDesc, setTeamDesc] = useState("");
   const [teamImage, setTeamImage] = useState("");
   const [teamBoardYear, setTeamBoardYear] = useState("2026-27");
+  const [teamGithub, setTeamGithub] = useState("");
+  const [teamLinkedin, setTeamLinkedin] = useState("");
+  const [teamInstagram, setTeamInstagram] = useState("");
+  const [teamTwitter, setTeamTwitter] = useState("");
   const [teamStatus, setTeamStatus] = useState(null);
   const [unsavedTeamYears, setUnsavedTeamYears] = useState({});
   const [isUpdatingTeamOrder, setIsUpdatingTeamOrder] = useState(false);
@@ -66,6 +70,10 @@ const Dashboard = () => {
   const [currentTeamDesc, setCurrentTeamDesc] = useState("");
   const [currentTeamImage, setCurrentTeamImage] = useState("");
   const [currentTeamCategory, setCurrentTeamCategory] = useState("senior");
+  const [currentTeamGithub, setCurrentTeamGithub] = useState("");
+  const [currentTeamLinkedin, setCurrentTeamLinkedin] = useState("");
+  const [currentTeamInstagram, setCurrentTeamInstagram] = useState("");
+  const [currentTeamTwitter, setCurrentTeamTwitter] = useState("");
   const [currentTeamStatus, setCurrentTeamStatus] = useState(null);
   const [unsavedCurrentTeamOrder, setUnsavedCurrentTeamOrder] = useState(false);
   const [isUpdatingCurrentTeamOrder, setIsUpdatingCurrentTeamOrder] = useState(false);
@@ -525,6 +533,10 @@ const Dashboard = () => {
     setTeamDesc(member.description);
     setTeamImage(member.image);
     setTeamBoardYear(member.board_year || "2026-27");
+    setTeamGithub(member.github_link || "");
+    setTeamLinkedin(member.linkedin_link || "");
+    setTeamInstagram(member.instagram_link || "");
+    setTeamTwitter(member.twitter_link || "");
     setTeamStatus(null);
     setTimeout(() => teamFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
   };
@@ -560,7 +572,7 @@ const Dashboard = () => {
       if (data.success) {
         fetchCurrentTeam();
         setEditCurrentTeamId(null);
-        setCurrentTeamName(""); setCurrentTeamRole(""); setCurrentTeamDesc(""); setCurrentTeamImage(""); setCurrentTeamCategory("senior");
+        setCurrentTeamName(""); setCurrentTeamRole(""); setCurrentTeamDesc(""); setCurrentTeamImage(""); setCurrentTeamCategory("senior"); setCurrentTeamGithub(""); setCurrentTeamLinkedin(""); setCurrentTeamInstagram(""); setCurrentTeamTwitter("");
       } else {
         alert(data.message || "Failed to delete");
       }
@@ -625,13 +637,17 @@ const Dashboard = () => {
           role: currentTeamRole,
           description: currentTeamDesc,
           image: currentTeamImage,
-          category: currentTeamCategory
+          category: currentTeamCategory,
+          github_link: currentTeamGithub,
+          linkedin_link: currentTeamLinkedin,
+          instagram_link: currentTeamInstagram,
+          twitter_link: currentTeamTwitter
         })
       });
       const data = await res.json();
       if (data.success) {
         setCurrentTeamStatus(`Team member ${isEdit ? "updated" : "added"} successfully!`);
-        setCurrentTeamName(""); setCurrentTeamRole(""); setCurrentTeamDesc(""); setCurrentTeamImage(""); setCurrentTeamCategory("senior");
+        setCurrentTeamName(""); setCurrentTeamRole(""); setCurrentTeamDesc(""); setCurrentTeamImage(""); setCurrentTeamCategory("senior"); setCurrentTeamGithub(""); setCurrentTeamLinkedin(""); setCurrentTeamInstagram(""); setCurrentTeamTwitter("");
         setEditCurrentTeamId(null);
         fetchCurrentTeam();
         setTimeout(() => setCurrentTeamStatus(null), 3000);
@@ -661,14 +677,18 @@ const Dashboard = () => {
             role: teamRole, 
             description: teamDesc, 
             image: teamImage,
-            board_year: teamBoardYear 
+            board_year: teamBoardYear,
+            github_link: teamGithub,
+            linkedin_link: teamLinkedin,
+            instagram_link: teamInstagram,
+            twitter_link: teamTwitter
         })
       });
       handleApiError(res);
       const data = await res.json();
       if (data.success) {
         setTeamStatus(`Board member ${isEdit ? "updated" : "added"} successfully!`);
-        setTeamName(""); setTeamRole(""); setTeamDesc(""); setTeamImage(""); setTeamBoardYear("2026-27");
+        setTeamName(""); setTeamRole(""); setTeamDesc(""); setTeamImage(""); setTeamBoardYear("2026-27"); setTeamGithub(""); setTeamLinkedin(""); setTeamInstagram(""); setTeamTwitter("");
         setEditTeamId(null);
         fetchTeam();
       } else {
@@ -1123,6 +1143,10 @@ const Dashboard = () => {
                                   setCurrentTeamDesc(member.description || "");
                                   setCurrentTeamImage(member.image || "");
                                   setCurrentTeamCategory(member.category || "senior");
+                                  setCurrentTeamGithub(member.github_link || "");
+                                  setCurrentTeamLinkedin(member.linkedin_link || "");
+                                  setCurrentTeamInstagram(member.instagram_link || "");
+                                  setCurrentTeamTwitter(member.twitter_link || "");
                                   setTimeout(() => currentTeamFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
                                 }} className="btn ghost cursor-target" style={{ padding: "6px 16px", fontSize: "0.85rem", fontWeight: "bold", fontFamily: "var(--font-en-display)", textTransform: "uppercase" }}>Edit</button>
                                 <button onClick={() => deleteCurrentTeamMember(member.id)} className="btn cursor-target" style={{ background: "var(--deep-red)", padding: "6px 16px", fontSize: "0.85rem", color: "white", fontWeight: "bold", fontFamily: "var(--font-en-display)", textTransform: "uppercase" }}>Delete</button>
@@ -1142,7 +1166,7 @@ const Dashboard = () => {
                     {editCurrentTeamId !== null ? "Edit Member" : "Add Member"}
                   </h2>
                   {editCurrentTeamId !== null && (
-                    <button onClick={() => { setEditCurrentTeamId(null); setCurrentTeamName(""); setCurrentTeamRole(""); setCurrentTeamDesc(""); setCurrentTeamImage(""); setCurrentTeamCategory("senior"); }} className="btn ghost cursor-target" style={{ padding: "4px 8px", fontSize: "0.8rem" }}>Cancel</button>
+                    <button onClick={() => { setEditCurrentTeamId(null); setCurrentTeamName(""); setCurrentTeamRole(""); setCurrentTeamDesc(""); setCurrentTeamImage(""); setCurrentTeamCategory("senior"); setCurrentTeamGithub(""); setCurrentTeamLinkedin(""); setCurrentTeamInstagram(""); setCurrentTeamTwitter(""); }} className="btn ghost cursor-target" style={{ padding: "4px 8px", fontSize: "0.8rem" }}>Cancel</button>
                   )}
                 </div>
                 <form onSubmit={handleCurrentTeamSubmit} style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
@@ -1175,6 +1199,13 @@ const Dashboard = () => {
                         onUploadSuccess={(urls) => setCurrentTeamImage(urls[0])} 
                       />
                     </div>
+                  </div>
+                  <div className="field">
+                    <label className="label">Social Links (Optional)</label>
+                    <input className="input" placeholder="GitHub URL" value={currentTeamGithub} onChange={e => setCurrentTeamGithub(e.target.value)} style={{marginBottom: "8px"}} />
+                    <input className="input" placeholder="LinkedIn URL" value={currentTeamLinkedin} onChange={e => setCurrentTeamLinkedin(e.target.value)} style={{marginBottom: "8px"}} />
+                    <input className="input" placeholder="Instagram URL" value={currentTeamInstagram} onChange={e => setCurrentTeamInstagram(e.target.value)} style={{marginBottom: "8px"}} />
+                    <input className="input" placeholder="Twitter (X) URL" value={currentTeamTwitter} onChange={e => setCurrentTeamTwitter(e.target.value)} />
                   </div>
                   {currentTeamStatus && <p style={{ color: "var(--terracotta)" }}>{currentTeamStatus}</p>}
                   <button type="submit" className="btn cursor-target">{editCurrentTeamId !== null ? "Update Member" : "Add Member"}</button>
@@ -1270,7 +1301,7 @@ const Dashboard = () => {
                     {editTeamId !== null ? "Edit Member" : "Add Member"}
                   </h2>
                   {editTeamId !== null && (
-                    <button onClick={() => { setEditTeamId(null); setTeamName(""); setTeamRole(""); setTeamDesc(""); setTeamImage(""); setTeamBoardYear("2026-27"); }} className="btn ghost cursor-target" style={{ padding: "4px 8px", fontSize: "0.8rem" }}>Cancel</button>
+                    <button onClick={() => { setEditTeamId(null); setTeamName(""); setTeamRole(""); setTeamDesc(""); setTeamImage(""); setTeamBoardYear("2026-27"); setTeamGithub(""); setTeamLinkedin(""); setTeamInstagram(""); setTeamTwitter(""); }} className="btn ghost cursor-target" style={{ padding: "4px 8px", fontSize: "0.8rem" }}>Cancel</button>
                   )}
                 </div>
                 <form onSubmit={submitTeam} style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
@@ -1304,6 +1335,13 @@ const Dashboard = () => {
                         onUploadSuccess={(urls) => setTeamImage(urls[0])} 
                       />
                     </div>
+                  </div>
+                  <div className="field">
+                    <label className="label">Social Links (Optional)</label>
+                    <input className="input" placeholder="GitHub URL" value={teamGithub} onChange={e => setTeamGithub(e.target.value)} style={{marginBottom: "8px"}} />
+                    <input className="input" placeholder="LinkedIn URL" value={teamLinkedin} onChange={e => setTeamLinkedin(e.target.value)} style={{marginBottom: "8px"}} />
+                    <input className="input" placeholder="Instagram URL" value={teamInstagram} onChange={e => setTeamInstagram(e.target.value)} style={{marginBottom: "8px"}} />
+                    <input className="input" placeholder="Twitter (X) URL" value={teamTwitter} onChange={e => setTeamTwitter(e.target.value)} />
                   </div>
                   {teamStatus && <p style={{ color: "var(--terracotta)" }}>{teamStatus}</p>}
                   <button type="submit" className="btn cursor-target">{editTeamId !== null ? "Update Member" : "Add Member"}</button>

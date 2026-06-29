@@ -57,6 +57,10 @@ CREATE TABLE team (
     description TEXT,
     image TEXT,
     board_year TEXT,
+    github_link TEXT,
+    linkedin_link TEXT,
+    instagram_link TEXT,
+    twitter_link TEXT,
     sort_order INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -84,6 +88,11 @@ CREATE TABLE current_team (
     role TEXT NOT NULL,
     description TEXT,
     image TEXT,
+    category TEXT,
+    github_link TEXT,
+    linkedin_link TEXT,
+    instagram_link TEXT,
+    twitter_link TEXT,
     sort_order INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

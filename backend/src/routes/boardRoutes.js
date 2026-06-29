@@ -64,7 +64,7 @@ router.post(
     adminLimiter,
     async (req, res) => {
         try {
-            const { name, role, description, image, board_year } = req.body
+            const { name, role, description, image, board_year, github_link, linkedin_link, instagram_link, twitter_link } = req.body
 
             if (!name || !role) {
                 return res.status(400).json({
@@ -105,6 +105,10 @@ router.post(
             const newDesc = description ? description.trim() : "";
             const newImage = image ? image.trim() : "";
             const newYear = board_year ? board_year.trim() : "2026-27";
+            const newGithub = github_link ? github_link.trim() : "";
+            const newLinkedin = linkedin_link ? linkedin_link.trim() : "";
+            const newInstagram = instagram_link ? instagram_link.trim() : "";
+            const newTwitter = twitter_link ? twitter_link.trim() : "";
             
             let insertedId = crypto.randomUUID();
             const connection = await pool.getConnection();
@@ -116,9 +120,9 @@ router.post(
                 const newSortOrder = (orderRows[0].maxOrder || 0) + 1;
 
                 await connection.execute(
-                    `INSERT INTO team (id, name, role, description, image, board_year, sort_order, created_at)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`,
-                    [insertedId, newName, newRole, newDesc, newImage, newYear, newSortOrder]
+                    `INSERT INTO team (id, name, role, description, image, board_year, github_link, linkedin_link, instagram_link, twitter_link, sort_order, created_at)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+                    [insertedId, newName, newRole, newDesc, newImage, newYear, newGithub, newLinkedin, newInstagram, newTwitter, newSortOrder]
                 );
                 
                 await connection.commit();
@@ -233,7 +237,7 @@ router.put(
     async (req, res) => {
         try {
             const { id } = req.params;
-            const { name, role, description, image, board_year } = req.body;
+            const { name, role, description, image, board_year, github_link, linkedin_link, instagram_link, twitter_link } = req.body;
 
             if (!name || !role) {
                 return res.status(400).json({
@@ -275,12 +279,16 @@ router.put(
             const updateDesc = description ? description.trim() : "";
             const updateImage = image ? image.trim() : "";
             const updateYear = board_year ? board_year.trim() : "2026-27";
+            const updateGithub = github_link ? github_link.trim() : "";
+            const updateLinkedin = linkedin_link ? linkedin_link.trim() : "";
+            const updateInstagram = instagram_link ? instagram_link.trim() : "";
+            const updateTwitter = twitter_link ? twitter_link.trim() : "";
 
             await pool.execute(
                 `UPDATE team 
-                 SET name = ?, role = ?, description = ?, image = ?, board_year = ?
+                 SET name = ?, role = ?, description = ?, image = ?, board_year = ?, github_link = ?, linkedin_link = ?, instagram_link = ?, twitter_link = ?
                  WHERE id = ?`,
-                [updateName, updateRole, updateDesc, updateImage, updateYear, id]
+                [updateName, updateRole, updateDesc, updateImage, updateYear, updateGithub, updateLinkedin, updateInstagram, updateTwitter, id]
             )
 
             const [rows] = await pool.query("SELECT * FROM team WHERE id = ?", [id]);
